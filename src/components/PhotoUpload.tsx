@@ -61,7 +61,7 @@ const PhotoUpload = ({ onImagesUploaded }: PhotoUploadProps) => {
   };
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-6">
       {/* Upload Area */}
       <div
         className={`
@@ -89,36 +89,36 @@ const PhotoUpload = ({ onImagesUploaded }: PhotoUploadProps) => {
           
           <div>
             <p className="text-lg font-medium text-gray-700">
-              اسحب صورك هنا أو انقر للاختيار
+              Glissez vos photos ici ou cliquez pour sélectionner
             </p>
             <p className="text-sm text-gray-500 mt-2">
-              PNG, JPG حتى 10 ميجابايت • حد أقصى 10 صور
+              PNG, JPG jusqu'à 10 Mo • Maximum 10 photos
             </p>
           </div>
           
           <Button type="button" variant="outline" className="mt-4">
-            اختر الملفات
+            Choisir les fichiers
           </Button>
         </div>
       </div>
 
       {/* Upload Instructions */}
       <Card className="p-4 bg-blue-50 border-blue-200">
-        <h3 className="font-semibold text-blue-900 mb-2">نصائح للحصول على أفضل النتائج:</h3>
+        <h3 className="font-semibold text-blue-900 mb-2">Conseils pour de meilleurs résultats :</h3>
         <ul className="text-sm text-blue-800 space-y-1">
-          <li>• التقط صوراً واضحة ومضاءة جيداً</li>
-          <li>• صور جميع زوايا السيارة المتضررة</li>
-          <li>• اشمل لقطات مقربة للمناطق المتضررة</li>
-          <li>• تجنب الصور المشوشة أو المظلمة</li>
+          <li>• Prenez des photos claires et bien éclairées</li>
+          <li>• Photographiez tous les angles de la voiture endommagée</li>
+          <li>• Incluez des plans rapprochés des zones endommagées</li>
+          <li>• Évitez les photos floues ou sombres</li>
         </ul>
       </Card>
 
       {/* Uploaded Files */}
       {uploadedFiles.length > 0 && (
         <div className="space-y-4">
-          <h3 className="font-semibold text-gray-900 flex items-center space-x-2 space-x-reverse">
+          <h3 className="font-semibold text-gray-900 flex items-center space-x-2">
             <CheckCircle className="h-5 w-5 text-green-600" />
-            <span>الصور المحملة ({uploadedFiles.length})</span>
+            <span>Photos téléchargées ({uploadedFiles.length})</span>
           </h3>
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -127,7 +127,7 @@ const PhotoUpload = ({ onImagesUploaded }: PhotoUploadProps) => {
                 <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-200">
                   <img
                     src={URL.createObjectURL(file)}
-                    alt={`رفع ${index + 1}`}
+                    alt={`Upload ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -149,8 +149,8 @@ const PhotoUpload = ({ onImagesUploaded }: PhotoUploadProps) => {
               onClick={proceedWithAnalysis}
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
             >
-              <ImageIcon className="h-5 w-5 ml-2" />
-              تحليل الصور ({uploadedFiles.length})
+              <ImageIcon className="h-5 w-5 mr-2" />
+              Analyser les photos ({uploadedFiles.length})
             </Button>
           </div>
         </div>

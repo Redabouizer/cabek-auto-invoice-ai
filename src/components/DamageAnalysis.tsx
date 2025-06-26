@@ -165,7 +165,7 @@ const DamageAnalysis = ({ images, onAnalysisComplete }: DamageAnalysisProps) => 
                       
                       <div className="text-right">
                         <p className="text-2xl font-bold text-blue-600">
-                          {damage.estimatedCost}€
+                          {damage.estimatedCost} DH
                         </p>
                         <p className="text-xs text-gray-500">Estimation</p>
                       </div>
@@ -188,7 +188,7 @@ const DamageAnalysis = ({ images, onAnalysisComplete }: DamageAnalysisProps) => 
                 </div>
                 <div className="text-right">
                   <p className="text-3xl font-bold text-blue-600">
-                    {detectedDamages.reduce((sum, damage) => sum + damage.estimatedCost, 0)}€
+                    {detectedDamages.reduce((sum, damage) => sum + damage.estimatedCost, 0)} DH
                   </p>
                   <p className="text-sm text-blue-700">HT</p>
                 </div>
