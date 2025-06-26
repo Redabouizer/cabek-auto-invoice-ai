@@ -15,21 +15,21 @@ const Index = () => {
   const steps = [
     { 
       id: 0, 
-      title: 'Télécharger Photos', 
+      title: 'تحميل الصور', 
       icon: Camera,
-      description: 'Téléchargez les photos des dégâts du véhicule'
+      description: 'قم بتحميل صور أضرار السيارة'
     },
     { 
       id: 1, 
-      title: 'Analyse IA', 
+      title: 'تحليل الذكاء الاصطناعي', 
       icon: Brain,
-      description: 'L\'IA analyse les dommages détectés'
+      description: 'الذكاء الاصطناعي يحلل الأضرار المكتشفة'
     },
     { 
       id: 2, 
-      title: 'Génération Facture', 
+      title: 'إنشاء الفاتورة', 
       icon: FileText,
-      description: 'Génération automatique de la facture'
+      description: 'إنشاء تلقائي للفاتورة'
     }
   ];
 
@@ -46,25 +46,25 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white" dir="rtl">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 space-x-reverse">
               <img 
                 src="/lovable-uploads/c39ccd54-0cd2-48f3-8b28-5e25a7db42de.png" 
                 alt="Cabek Logo" 
                 className="h-12 w-auto"
               />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Cabek Auto Assessment</h1>
-                <p className="text-sm text-gray-600">Système d'évaluation intelligent des dégâts automobiles</p>
+                <h1 className="text-2xl font-bold text-gray-900">كابك لتقييم السيارات</h1>
+                <p className="text-sm text-gray-600">نظام ذكي لتقييم أضرار السيارات</p>
               </div>
             </div>
-            <div className="flex items-center space-x-2 text-blue-600">
+            <div className="flex items-center space-x-2 space-x-reverse text-blue-600">
               <Car className="h-6 w-6" />
-              <span className="font-medium">Version IA</span>
+              <span className="font-medium">نسخة الذكاء الاصطناعي</span>
             </div>
           </div>
         </div>
@@ -73,7 +73,7 @@ const Index = () => {
       <div className="container mx-auto px-6 py-8">
         {/* Progress Steps */}
         <div className="mb-8">
-          <div className="flex items-center justify-center space-x-4 mb-6">
+          <div className="flex items-center justify-center space-x-4 space-x-reverse mb-6">
             {steps.map((step, index) => {
               const Icon = step.icon;
               const isActive = currentStep === index;
@@ -111,12 +111,12 @@ const Index = () => {
           {currentStep === 0 && (
             <Card className="shadow-lg">
               <CardHeader className="text-center">
-                <CardTitle className="text-2xl flex items-center justify-center space-x-2">
+                <CardTitle className="text-2xl flex items-center justify-center space-x-2 space-x-reverse">
                   <Upload className="h-8 w-8 text-blue-600" />
-                  <span>Téléchargement des Photos</span>
+                  <span>تحميل الصور</span>
                 </CardTitle>
                 <p className="text-gray-600 mt-2">
-                  Veuillez télécharger les photos du véhicule endommagé sous tous les angles pour une analyse précise.
+                  يرجى تحميل صور السيارة المتضررة من جميع الزوايا للحصول على تحليل دقيق.
                 </p>
               </CardHeader>
               <CardContent>
@@ -128,12 +128,12 @@ const Index = () => {
           {currentStep === 1 && (
             <Card className="shadow-lg">
               <CardHeader className="text-center">
-                <CardTitle className="text-2xl flex items-center justify-center space-x-2">
+                <CardTitle className="text-2xl flex items-center justify-center space-x-2 space-x-reverse">
                   <Brain className="h-8 w-8 text-blue-600 animate-pulse" />
-                  <span>Analyse IA en Cours</span>
+                  <span>تحليل الذكاء الاصطناعي جاري</span>
                 </CardTitle>
                 <p className="text-gray-600 mt-2">
-                  Notre intelligence artificielle analyse les dommages détectés sur les photos.
+                  الذكاء الاصطناعي يحلل الأضرار المكتشفة في الصور.
                 </p>
               </CardHeader>
               <CardContent>
@@ -148,12 +148,12 @@ const Index = () => {
           {currentStep === 2 && analysisResults && (
             <Card className="shadow-lg">
               <CardHeader className="text-center">
-                <CardTitle className="text-2xl flex items-center justify-center space-x-2">
+                <CardTitle className="text-2xl flex items-center justify-center space-x-2 space-x-reverse">
                   <FileText className="h-8 w-8 text-blue-600" />
-                  <span>Facture Générée</span>
+                  <span>الفاتورة المُنشأة</span>
                 </CardTitle>
                 <p className="text-gray-600 mt-2">
-                  Facture d'estimation des réparations basée sur l'analyse IA.
+                  فاتورة تقدير الإصلاحات المبنية على تحليل الذكاء الاصطناعي.
                 </p>
               </CardHeader>
               <CardContent>
@@ -175,7 +175,7 @@ const Index = () => {
               }}
               className="bg-white hover:bg-gray-50"
             >
-              Nouvelle Évaluation
+              تقييم جديد
             </Button>
           </div>
         )}
