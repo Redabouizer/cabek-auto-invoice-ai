@@ -4,6 +4,7 @@ import { FileText, Download, Printer, Calendar, Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import jsPDF from 'jspdf';
 
 interface InvoiceGeneratorProps {
   analysisResults: {
@@ -25,76 +26,119 @@ const InvoiceGenerator = ({ analysisResults }: InvoiceGeneratorProps) => {
   const taxAmount = totalCost * taxRate;
   const totalWithTax = totalCost + taxAmount;
 
-  const generatePDFContent = () => {
-    return {
-      invoiceNumber,
-      date: new Date().toLocaleDateString('fr-FR'),
-      company: {
-        name: 'Cabek',
-        address: 'Espace Paquet, 5 Angle Rue Mohamed Smiha et Rue Pierre Parent',
-        floor: '5ème Etage, Bureau 511, Casablanca',
-        phone: '+212 522-458989',
-        country: 'Maroc'
-      },
-      damages,
-      subtotal: totalCost,
-      tax: taxAmount,
-      total: totalWithTax,
-      vehicleInfo
-    };
-  };
-
-  const handleDownload = () => {
-    const pdfContent = generatePDFContent();
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
     
-    // Create a comprehensive text content for download
-    const textContent = `
-=== FACTURE D'ESTIMATION DES DOMMAGES ===
-Cabek
-Espace Paquet, 5 Angle Rue Mohamed Smiha et Rue Pierre Parent
-5ème Etage, Bureau 511, Casablanca, Maroc
-Téléphone: +212 522-458989
-
-Numéro de facture: ${pdfContent.invoiceNumber}
-Date: ${pdfContent.date}
-
-Informations du véhicule:
-- Photos analysées: ${pdfContent.vehicleInfo.images}
-- Date d'analyse: ${pdfContent.vehicleInfo.analysisDate}
-- Niveau de confiance: ${pdfContent.vehicleInfo.confidence}%
-
-Détails des dommages:
-${pdfContent.damages.map((damage, index) => `
-${index + 1}. ${damage.type}
-   Description: ${damage.description}
-   Localisation: ${damage.location}
-   Gravité: ${damage.severity}
-   Confiance: ${damage.confidence}%
-   Coût: ${damage.estimatedCost.toFixed(2)} DH
-`).join('')}
-
-Sous-total: ${pdfContent.subtotal.toFixed(2)} DH
-TVA (20%): ${pdfContent.tax.toFixed(2)} DH
-Total TTC: ${pdfContent.total.toFixed(2)} DH
-
-Note importante: Cette estimation est basée sur l'analyse IA des photos fournies.
-Un examen supplémentaire par un expert peut être nécessaire pour confirmer les réparations et les coûts.
-
-L'estimation est valable 30 jours à compter de la date d'émission.
-    `;
-
-    // Create and download the file
-    const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Facture_Cabek_${invoiceNumber}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    console.log('Facture téléchargée:', pdfContent);
+    // Set font
+    doc.setFont('helvetica');
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(37, 99, 235); // Blue color
+    doc.text('FACTURE D\'ESTIMATION DES DOMMAGES', 20, 25);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Numéro: ${invoiceNumber}`, 20, 35);
+    doc.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, 20, 42);
+    
+    // Company info
+    doc.setFontSize(14);
+    doc.setTextColor(37, 99, 235);
+    doc.text('CABEK', 20, 60);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Service d\'évaluation par IA', 20, 68);
+    doc.text('Espace Paquet, 5 Angle Rue Mohamed Smiha', 20, 76);
+    doc.text('et Rue Pierre Parent, 5ème Etage', 20, 84);
+    doc.text('Bureau 511, Casablanca, Maroc', 20, 92);
+    doc.text('Téléphone: +212 522-458989', 20, 100);
+    
+    // Vehicle info
+    doc.setFontSize(12);
+    doc.setTextColor(37, 99, 235);
+    doc.text('Informations du véhicule:', 120, 60);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Photos analysées: ${vehicleInfo.images}`, 120, 70);
+    doc.text(`Date d'analyse: ${vehicleInfo.analysisDate}`, 120, 78);
+    doc.text(`Niveau de confiance IA: ${vehicleInfo.confidence}%`, 120, 86);
+    
+    // Damages section
+    doc.setFontSize(14);
+    doc.setTextColor(37, 99, 235);
+    doc.text('Détails des dommages détectés:', 20, 120);
+    
+    let yPos = 135;
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    
+    damages.forEach((damage, index) => {
+      if (yPos > 250) {
+        doc.addPage();
+        yPos = 20;
+      }
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${index + 1}. ${damage.type}`, 20, yPos);
+      yPos += 8;
+      
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Description: ${damage.description}`, 25, yPos);
+      yPos += 6;
+      doc.text(`Localisation: ${damage.location}`, 25, yPos);
+      yPos += 6;
+      doc.text(`Gravité: ${damage.severity}`, 25, yPos);
+      yPos += 6;
+      doc.text(`Confiance: ${damage.confidence}%`, 25, yPos);
+      yPos += 6;
+      doc.text(`Coût: ${damage.estimatedCost.toFixed(2)} DH`, 25, yPos);
+      yPos += 12;
+    });
+    
+    // Totals section
+    if (yPos > 220) {
+      doc.addPage();
+      yPos = 20;
+    }
+    
+    yPos += 10;
+    doc.line(120, yPos, 190, yPos); // Line separator
+    yPos += 10;
+    
+    doc.setFont('helvetica', 'normal');
+    doc.text('Sous-total:', 120, yPos);
+    doc.text(`${totalCost.toFixed(2)} DH`, 170, yPos);
+    yPos += 8;
+    
+    doc.text('TVA (20%):', 120, yPos);
+    doc.text(`${taxAmount.toFixed(2)} DH`, 170, yPos);
+    yPos += 8;
+    
+    doc.line(120, yPos, 190, yPos); // Line separator
+    yPos += 10;
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('Total TTC:', 120, yPos);
+    doc.text(`${totalWithTax.toFixed(2)} DH`, 170, yPos);
+    
+    // Footer
+    yPos += 20;
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text('Note importante: Cette estimation est basée sur l\'analyse IA des photos fournies.', 20, yPos);
+    yPos += 5;
+    doc.text('Un examen supplémentaire par un expert peut être nécessaire pour confirmer les réparations et les coûts.', 20, yPos);
+    yPos += 8;
+    doc.text('L\'estimation est valable 30 jours à compter de la date d\'émission.', 20, yPos);
+    
+    // Save the PDF
+    doc.save(`Facture_Cabek_${invoiceNumber}.pdf`);
+    console.log('Facture PDF générée et téléchargée');
   };
 
   const handlePrint = () => {
@@ -234,9 +278,9 @@ L'estimation est valable 30 jours à compter de la date d'émission.
           <Printer className="h-4 w-4" />
           <span>Imprimer</span>
         </Button>
-        <Button onClick={handleDownload} className="bg-blue-600 hover:bg-blue-700 flex items-center space-x-2">
+        <Button onClick={handleDownloadPDF} className="bg-blue-600 hover:bg-blue-700 flex items-center space-x-2">
           <Download className="h-4 w-4" />
-          <span>Télécharger le fichier</span>
+          <span>Télécharger PDF</span>
         </Button>
       </div>
     </div>
