@@ -6,11 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PhotoUpload from '@/components/PhotoUpload';
 import DamageAnalysis from '@/components/DamageAnalysis';
 import InvoiceGenerator from '@/components/InvoiceGenerator';
+import Header from '@/components/Header';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [analysisResults, setAnalysisResults] = useState(null);
+  const { userRole } = useAuth();
 
   const steps = [
     { 
@@ -47,30 +50,22 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <img 
-                src="/lovable-uploads/c39ccd54-0cd2-48f3-8b28-5e25a7db42de.png" 
-                alt="Cabek Logo" 
-                className="h-12 w-auto"
-              />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Cabek - Évaluation Automobile</h1>
-                <p className="text-sm text-gray-600">Système intelligent d'évaluation des dommages automobiles</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2 text-blue-600">
-              <Car className="h-6 w-6" />
-              <span className="font-medium">Version IA</span>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <div className="container mx-auto px-6 py-8">
+        {/* Welcome message for different user roles */}
+        <div className="mb-6 text-center">
+          <h2 className="text-2xl font-semibold text-gray-800">
+            {userRole === 'admin' ? 'Tableau de bord Administrateur' : 'Nouvelle Évaluation'}
+          </h2>
+          <p className="text-gray-600 mt-2">
+            {userRole === 'admin' 
+              ? 'Bienvenue dans le système d\'administration Cabek'
+              : 'Commencez une nouvelle évaluation de dommages'
+            }
+          </p>
+        </div>
+
         {/* Progress Steps */}
         <div className="mb-8">
           <div className="flex items-center justify-center space-x-4 mb-6">
