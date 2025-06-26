@@ -31,75 +31,164 @@ const InvoiceGenerator = ({ analysisResults }: InvoiceGeneratorProps) => {
     // Set font
     doc.setFont('helvetica');
     
-    // Red header background
-    doc.setFillColor(175, 35, 35);
-    doc.rect(0, 0, 210, 25, 'F');
+    // Header with gradient effect (using rectangles for layering)
+    doc.setFillColor(41, 128, 185); // Blue gradient start
+    doc.rect(0, 0, 210, 40, 'F');
+    doc.setFillColor(52, 152, 219); // Blue gradient end
+    doc.rect(0, 0, 210, 35, 'F');
     
-    // Header text
-    doc.setFontSize(20);
+    // Company Logo Circle
+    doc.setFillColor(255, 255, 255);
+    doc.circle(25, 20, 10, 'F');
+    doc.setFillColor(41, 128, 185);
+    doc.setFontSize(12);
     doc.setTextColor(255, 255, 255);
-    doc.text('ESTIMATION', 20, 18);
+    doc.text('LOGO', 18, 23);
     
-    // Date and estimate number on right
-    doc.setFontSize(10);
-    doc.text('DATE', 160, 10);
-    doc.text(new Date().toLocaleDateString('fr-FR'), 160, 15);
-    doc.text('N° ESTIMATION', 160, 20);
-    doc.text(invoiceNumber, 160, 25);
-    
-    // Company info
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
-    doc.text('CABEK', 20, 40);
-    doc.text('Espace Paquet, 5 Angle Rue Mohamed Smiha', 20, 46);
-    doc.text('et Rue Pierre Parent, 5ème Etage', 20, 52);
-    doc.text('Bureau 511, Casablanca, Maroc', 20, 58);
-    doc.text('Téléphone: +212 522-458989', 20, 64);
-    
-    // Table header
-    doc.setFillColor(175, 35, 35);
-    doc.rect(20, 80, 170, 8, 'F');
-    
-    doc.setFontSize(9);
+    // Header Title
+    doc.setFontSize(28);
     doc.setTextColor(255, 255, 255);
-    doc.text('DESCRIPTION', 22, 86);
-    doc.text('QTÉ', 110, 86);
-    doc.text('PRIX UNITAIRE', 130, 86);
-    doc.text('TOTAL', 165, 86);
+    doc.text('ESTIMATION AUTOMOBILE', 45, 18);
     
-    // Table content
-    let yPos = 95;
+    // Subtitle
+    doc.setFontSize(12);
+    doc.text('Expertise Intelligente par IA', 45, 28);
+    
+    // Invoice details box
+    doc.setFillColor(236, 240, 241);
+    doc.rect(140, 45, 60, 30, 'F');
+    doc.setDrawColor(189, 195, 199);
+    doc.rect(140, 45, 60, 30, 'S');
+    
+    doc.setFontSize(10);
+    doc.setTextColor(52, 73, 94);
+    doc.text('N° ESTIMATION', 145, 52);
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text(invoiceNumber, 145, 58);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(52, 73, 94);
+    doc.text('DATE', 145, 65);
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text(new Date().toLocaleDateString('fr-FR'), 145, 71);
+    
+    // Company info section
+    doc.setFontSize(14);
+    doc.setTextColor(41, 128, 185);
+    doc.text('CABEK AUTOMOBILE', 20, 55);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(52, 73, 94);
+    doc.text('Espace Paquet, 5 Angle Rue Mohamed Smiha', 20, 63);
+    doc.text('et Rue Pierre Parent, 5ème Etage', 20, 69);
+    doc.text('Bureau 511, Casablanca, Maroc', 20, 75);
+    doc.text('Téléphone: +212 522-458989', 20, 81);
+    doc.text('Email: contact@cabek.ma', 20, 87);
+    
+    // Decorative line
+    doc.setDrawColor(41, 128, 185);
+    doc.setLineWidth(2);
+    doc.line(20, 95, 190, 95);
+    
+    // Table header with gradient
+    doc.setFillColor(52, 152, 219);
+    doc.rect(20, 105, 170, 12, 'F');
+    
+    doc.setFontSize(10);
+    doc.setTextColor(255, 255, 255);
+    doc.text('DESCRIPTION DU DOMMAGE', 25, 113);
+    doc.text('QTÉ', 115, 113);
+    doc.text('PRIX UNITAIRE', 135, 113);
+    doc.text('TOTAL', 170, 113);
+    
+    // Table content with alternating colors
+    let yPos = 125;
     doc.setTextColor(0, 0, 0);
     
-    damages.forEach((damage) => {
+    damages.forEach((damage, index) => {
       if (yPos > 250) {
         doc.addPage();
         yPos = 20;
       }
       
-      doc.text(damage.type, 22, yPos);
-      doc.text('1', 112, yPos);
-      doc.text(`${damage.estimatedCost.toFixed(2)}`, 132, yPos);
-      doc.text(`${damage.estimatedCost.toFixed(2)}`, 167, yPos);
-      yPos += 8;
+      // Alternating row colors
+      if (index % 2 === 0) {
+        doc.setFillColor(248, 249, 250);
+        doc.rect(20, yPos - 8, 170, 10, 'F');
+      }
+      
+      doc.setFontSize(9);
+      doc.text(damage.type, 25, yPos);
+      doc.text('1', 118, yPos);
+      doc.text(`${damage.estimatedCost.toFixed(2)} DH`, 140, yPos);
+      doc.text(`${damage.estimatedCost.toFixed(2)} DH`, 165, yPos);
+      yPos += 10;
     });
     
-    // Totals
-    yPos += 10;
-    doc.text('SOUS-TOTAL', 130, yPos);
-    doc.text(`${totalCost.toFixed(2)}`, 167, yPos);
+    // Add empty rows for professional look
+    for (let i = damages.length; i < 8; i++) {
+      if (i % 2 === 0) {
+        doc.setFillColor(248, 249, 250);
+        doc.rect(20, yPos - 8, 170, 10, 'F');
+      }
+      doc.text('-', 25, yPos);
+      doc.text('-', 118, yPos);
+      doc.text('-', 140, yPos);
+      doc.text('0.00 DH', 165, yPos);
+      yPos += 10;
+    }
+    
+    // Totals section with background
+    yPos += 5;
+    doc.setFillColor(236, 240, 241);
+    doc.rect(120, yPos - 5, 70, 25, 'F');
+    doc.setDrawColor(189, 195, 199);
+    doc.rect(120, yPos - 5, 70, 25, 'S');
+    
+    doc.setFontSize(10);
+    doc.setTextColor(52, 73, 94);
+    doc.text('SOUS-TOTAL', 125, yPos);
+    doc.text(`${totalCost.toFixed(2)} DH`, 165, yPos);
     yPos += 6;
     
-    doc.text('TVA (20%)', 130, yPos);
-    doc.text(`${taxAmount.toFixed(2)}`, 167, yPos);
+    doc.text('TVA (20%)', 125, yPos);
+    doc.text(`${taxAmount.toFixed(2)} DH`, 165, yPos);
     yPos += 6;
     
-    doc.text('TOTAL TTC', 130, yPos);
-    doc.text(`${totalWithTax.toFixed(2)} DH`, 167, yPos);
+    // Total with emphasis
+    doc.setFillColor(41, 128, 185);
+    doc.rect(120, yPos - 3, 70, 8, 'F');
+    doc.setFontSize(12);
+    doc.setTextColor(255, 255, 255);
+    doc.text('TOTAL TTC', 125, yPos + 2);
+    doc.text(`${totalWithTax.toFixed(2)} DH`, 165, yPos + 2);
+    
+    // Footer section
+    yPos += 20;
+    doc.setFontSize(10);
+    doc.setTextColor(52, 73, 94);
+    doc.text('Conditions générales:', 20, yPos);
+    yPos += 6;
+    doc.setFontSize(8);
+    doc.text('• Cette estimation est valable 30 jours à compter de la date d\'émission', 20, yPos);
+    yPos += 4;
+    doc.text('• Les prix sont exprimés en dirhams marocains (DH) toutes taxes comprises', 20, yPos);
+    yPos += 4;
+    doc.text('• Cette estimation a été générée par intelligence artificielle', 20, yPos);
+    
+    // Professional footer
+    yPos += 15;
+    doc.setFillColor(52, 73, 94);
+    doc.rect(0, yPos, 210, 15, 'F');
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+    doc.text('CABEK - Expertise Automobile Intelligente | www.cabek.ma | contact@cabek.ma', 20, yPos + 8);
     
     // Save the PDF
     doc.save(`Estimation_Cabek_${invoiceNumber}.pdf`);
-    console.log('Estimation PDF générée et téléchargée');
+    console.log('Estimation PDF professionnelle générée et téléchargée');
   };
 
   const handlePrint = () => {
@@ -108,99 +197,123 @@ const InvoiceGenerator = ({ analysisResults }: InvoiceGeneratorProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Invoice */}
-      <Card className="print:shadow-none max-w-4xl mx-auto">
+      {/* Professional Invoice Preview */}
+      <Card className="print:shadow-none max-w-4xl mx-auto overflow-hidden">
         <CardContent className="p-0">
-          {/* Red Header */}
-          <div className="bg-red-700 text-white p-6 flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold">ESTIMATION</h1>
-            </div>
-            <div className="text-right">
-              <div className="bg-gray-600 rounded-full w-16 h-16 flex items-center justify-center">
-                <span className="text-sm font-bold">LOGO</span>
+          {/* Blue Header with Gradient */}
+          <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white p-8">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-4">
+                <div className="bg-white rounded-full w-16 h-16 flex items-center justify-center">
+                  <img 
+                    src="/lovable-uploads/c39ccd54-0cd2-48f3-8b28-5e25a7db42de.png" 
+                    alt="Cabek Logo" 
+                    className="h-12 w-12 object-contain"
+                  />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold">ESTIMATION AUTOMOBILE</h1>
+                  <p className="text-blue-100 text-lg">Expertise Intelligente par IA</p>
+                </div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-right">
+                <div className="text-sm text-blue-100">N° ESTIMATION</div>
+                <div className="text-xl font-bold">{invoiceNumber}</div>
+                <div className="text-sm text-blue-100 mt-2">DATE</div>
+                <div className="font-semibold">{new Date().toLocaleDateString('fr-FR')}</div>
               </div>
             </div>
           </div>
           
-          {/* Header Info */}
-          <div className="bg-gray-50 p-4 flex justify-between">
-            <div></div>
-            <div className="text-right text-sm">
-              <div className="mb-2">
-                <span className="font-semibold">DATE</span>
-                <div>{new Date().toLocaleDateString('fr-FR')}</div>
-              </div>
+          {/* Company Info Section */}
+          <div className="bg-gray-50 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <span className="font-semibold">N° ESTIMATION</span>
-                <div>{invoiceNumber}</div>
+                <h3 className="text-lg font-bold text-blue-600 mb-3">CABEK AUTOMOBILE</h3>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <div>Espace Paquet, 5 Angle Rue Mohamed Smiha</div>
+                  <div>et Rue Pierre Parent, 5ème Etage</div>
+                  <div>Bureau 511, Casablanca, Maroc</div>
+                  <div>Téléphone: +212 522-458989</div>
+                  <div>Email: contact@cabek.ma</div>
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                  <div className="text-sm text-gray-500">Analyse effectuée le</div>
+                  <div className="font-semibold">{vehicleInfo.analysisDate}</div>
+                  <div className="text-sm text-gray-500 mt-2">Niveau de confiance</div>
+                  <div className="font-semibold text-green-600">{vehicleInfo.confidence}%</div>
+                </div>
               </div>
             </div>
           </div>
           
-          {/* Company Info */}
+          {/* Professional Table */}
           <div className="p-6">
-            <div className="text-sm text-gray-600 mb-8">
-              <div className="font-semibold text-blue-600 mb-2">CABEK</div>
-              <div>Espace Paquet, 5 Angle Rue Mohamed Smiha</div>
-              <div>et Rue Pierre Parent, 5ème Etage</div>
-              <div>Bureau 511, Casablanca, Maroc</div>
-              <div>Téléphone: +212 522-458989</div>
-            </div>
-            
-            {/* Table */}
-            <div className="border border-gray-300">
+            <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
               {/* Table Header */}
-              <div className="bg-red-700 text-white grid grid-cols-4 gap-4 p-3 text-sm font-semibold">
-                <div>DESCRIPTION</div>
-                <div className="text-center">QTÉ</div>
-                <div className="text-center">PRIX UNITAIRE</div>
-                <div className="text-right">TOTAL</div>
+              <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white">
+                <div className="grid grid-cols-4 gap-4 p-4 font-semibold">
+                  <div>DESCRIPTION DU DOMMAGE</div>
+                  <div className="text-center">QTÉ</div>
+                  <div className="text-center">PRIX UNITAIRE</div>
+                  <div className="text-right">TOTAL</div>
+                </div>
               </div>
               
               {/* Table Rows */}
-              {damages.map((damage, index) => (
-                <div key={index} className="grid grid-cols-4 gap-4 p-3 border-b border-gray-200 text-sm">
-                  <div>
-                    <div className="font-medium">{damage.type}</div>
-                    <div className="text-gray-600 text-xs">{damage.description}</div>
+              <div className="bg-white">
+                {damages.map((damage, index) => (
+                  <div key={index} className={`grid grid-cols-4 gap-4 p-4 border-b border-gray-100 ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
+                    <div>
+                      <div className="font-medium text-gray-900">{damage.type}</div>
+                      <div className="text-sm text-gray-600">{damage.description}</div>
+                    </div>
+                    <div className="text-center">1</div>
+                    <div className="text-center">{damage.estimatedCost.toFixed(2)} DH</div>
+                    <div className="text-right font-medium">{damage.estimatedCost.toFixed(2)} DH</div>
                   </div>
-                  <div className="text-center">1</div>
-                  <div className="text-center">{damage.estimatedCost.toFixed(2)}</div>
-                  <div className="text-right">{damage.estimatedCost.toFixed(2)}</div>
-                </div>
-              ))}
+                ))}
+                
+                {/* Empty rows for professional spacing */}
+                {Array.from({ length: Math.max(0, 5 - damages.length) }).map((_, index) => (
+                  <div key={`empty-${index}`} className={`grid grid-cols-4 gap-4 p-4 border-b border-gray-100 ${(damages.length + index) % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
+                    <div className="text-gray-400">-</div>
+                    <div className="text-center text-gray-400">-</div>
+                    <div className="text-center text-gray-400">-</div>
+                    <div className="text-right text-gray-400">0.00 DH</div>
+                  </div>
+                ))}
+              </div>
               
-              {/* Empty rows for spacing */}
-              {Array.from({ length: Math.max(0, 5 - damages.length) }).map((_, index) => (
-                <div key={`empty-${index}`} className="grid grid-cols-4 gap-4 p-3 border-b border-gray-200 text-sm">
-                  <div>&nbsp;</div>
-                  <div>&nbsp;</div>
-                  <div>&nbsp;</div>
-                  <div className="text-right">0.00</div>
-                </div>
-              ))}
-              
-              {/* Totals */}
-              <div className="bg-gray-50 p-3">
-                <div className="grid grid-cols-4 gap-4 text-sm mb-2">
-                  <div className="col-span-3 text-right font-semibold">SOUS-TOTAL</div>
-                  <div className="text-right">{totalCost.toFixed(2)}</div>
-                </div>
-                <div className="grid grid-cols-4 gap-4 text-sm mb-2">
-                  <div className="col-span-3 text-right font-semibold">TVA (20%)</div>
-                  <div className="text-right">{taxAmount.toFixed(2)}</div>
-                </div>
-                <div className="grid grid-cols-4 gap-4 text-sm border-t pt-2">
-                  <div className="col-span-3 text-right font-bold">TOTAL TTC</div>
-                  <div className="text-right font-bold">{totalWithTax.toFixed(2)} DH</div>
+              {/* Totals Section */}
+              <div className="bg-gray-50 border-t border-gray-200">
+                <div className="p-4 space-y-2">
+                  <div className="grid grid-cols-4 gap-4 text-sm">
+                    <div className="col-span-3 text-right font-semibold text-gray-700">SOUS-TOTAL</div>
+                    <div className="text-right font-semibold">{totalCost.toFixed(2)} DH</div>
+                  </div>
+                  <div className="grid grid-cols-4 gap-4 text-sm">
+                    <div className="col-span-3 text-right font-semibold text-gray-700">TVA (20%)</div>
+                    <div className="text-right font-semibold">{taxAmount.toFixed(2)} DH</div>
+                  </div>
+                  <div className="grid grid-cols-4 gap-4 text-lg border-t pt-2">
+                    <div className="col-span-3 text-right font-bold text-blue-600">TOTAL TTC</div>
+                    <div className="text-right font-bold text-blue-600">{totalWithTax.toFixed(2)} DH</div>
+                  </div>
                 </div>
               </div>
             </div>
             
-            {/* Footer Note */}
-            <div className="mt-6 text-xs text-gray-600">
-              <p>Remarques, notes ou durée de validité de l'estimation, durée du projet, estimations...</p>
+            {/* Professional Footer */}
+            <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+              <h4 className="font-semibold text-gray-700 mb-2">Conditions générales:</h4>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Cette estimation est valable 30 jours à compter de la date d'émission</li>
+                <li>• Les prix sont exprimés en dirhams marocains (DH) toutes taxes comprises</li>
+                <li>• Cette estimation a été générée par intelligence artificielle</li>
+              </ul>
             </div>
           </div>
         </CardContent>
