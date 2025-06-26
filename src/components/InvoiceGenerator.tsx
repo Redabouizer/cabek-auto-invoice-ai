@@ -135,7 +135,13 @@ const InvoiceGenerator = ({ analysisResults }: InvoiceGeneratorProps) => {
       
       // Severity indicator
       const severity = damage.severity || 'Moyen';
-      doc.setTextColor(severity === 'Élevé' ? 220, 53, 69 : severity === 'Faible' ? 40, 167, 69 : 255, 193, 7);
+      if (severity === 'Élevé') {
+        doc.setTextColor(220, 53, 69);
+      } else if (severity === 'Faible') {
+        doc.setTextColor(40, 167, 69);
+      } else {
+        doc.setTextColor(255, 193, 7);
+      }
       doc.text(severity, 105, yPos);
       
       // Price formatting
