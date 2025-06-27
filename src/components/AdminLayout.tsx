@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,7 +6,6 @@ import {
   Users, 
   Car, 
   FileText, 
-  Database, 
   Settings, 
   User,
   BarChart3,
@@ -53,13 +51,6 @@ const AdminLayout = () => {
       icon: Users,
       path: '/admin/users',
       description: 'Gérer les comptes utilisateurs'
-    },
-    {
-      id: 'other-data',
-      title: 'Gestion des autres données',
-      icon: Database,
-      path: '/admin/other-data',
-      description: 'Gérer les données système'
     }
   ];
 

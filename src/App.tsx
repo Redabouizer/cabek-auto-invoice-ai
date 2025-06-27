@@ -42,7 +42,6 @@ const App = () => (
               <Route path="users" element={<Admin />} />
               <Route path="evaluations" element={<div>Évaluations Management - Coming Soon</div>} />
               <Route path="cars" element={<div>Cars Management - Coming Soon</div>} />
-              <Route path="other-data" element={<div>Other Data Management - Coming Soon</div>} />
             </Route>
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

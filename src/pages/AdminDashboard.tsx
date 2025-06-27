@@ -1,11 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Users, 
   Car, 
   FileText, 
-  Database,
   TrendingUp,
   AlertCircle,
   CheckCircle,
@@ -20,7 +18,6 @@ interface DashboardStats {
   totalEvaluations: number;
   pendingEvaluations: number;
   completedEvaluations: number;
-  totalOtherData: number;
 }
 
 const AdminDashboard = () => {
@@ -29,8 +26,7 @@ const AdminDashboard = () => {
     totalCars: 0,
     totalEvaluations: 0,
     pendingEvaluations: 0,
-    completedEvaluations: 0,
-    totalOtherData: 0
+    completedEvaluations: 0
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -68,18 +64,12 @@ const AdminDashboard = () => {
         .select('*', { count: 'exact', head: true })
         .eq('status', 'complété');
 
-      // Fetch other data count
-      const { count: otherDataCount } = await supabase
-        .from('other_data')
-        .select('*', { count: 'exact', head: true });
-
       setStats({
         totalUsers: usersCount || 0,
         totalCars: carsCount || 0,
         totalEvaluations: evaluationsCount || 0,
         pendingEvaluations: pendingCount || 0,
-        completedEvaluations: completedCount || 0,
-        totalOtherData: otherDataCount || 0
+        completedEvaluations: completedCount || 0
       });
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
@@ -128,13 +118,6 @@ const AdminDashboard = () => {
       icon: CheckCircle,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-100'
-    },
-    {
-      title: 'Données Système',
-      value: stats.totalOtherData,
-      icon: Database,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-100'
     }
   ];
 
