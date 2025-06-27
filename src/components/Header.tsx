@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Car, LogOut, Settings, User } from 'lucide-react';
+import { LogOut, Settings, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -31,7 +31,7 @@ const Header = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3 cursor-pointer" onClick={() => navigate('/')}>
             <img 
-              src="/lovable-uploads/c39ccd54-0cd2-48f3-8b28-5e25a7db42de.png" 
+              src="/lovable-uploads/2eb7dc4c-f6d2-4178-a79c-fba9a54d7278.png" 
               alt="Cabek Logo" 
               className="h-12 w-auto"
             />
@@ -43,7 +43,11 @@ const Header = () => {
           
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2 text-blue-600">
-              <Car className="h-6 w-6" />
+              <img 
+                src="/lovable-uploads/2eb7dc4c-f6d2-4178-a79c-fba9a54d7278.png" 
+                alt="Cabek" 
+                className="h-6 w-6"
+              />
               <span className="font-medium">Version IA</span>
             </div>
             
