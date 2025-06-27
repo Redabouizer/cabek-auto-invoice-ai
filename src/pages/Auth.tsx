@@ -30,7 +30,9 @@ const Auth = () => {
       const result = await signIn(email, password);
 
       if (result.error) {
-        if (result.error.message.includes('Invalid login credentials')) {
+        console.error('Login error:', result.error);
+        if (result.error.message.includes('Invalid login credentials') || 
+            result.error.message.includes('Email not confirmed')) {
           toast({
             title: "Erreur de connexion",
             description: "Email ou mot de passe incorrect",
@@ -50,6 +52,7 @@ const Auth = () => {
         });
       }
     } catch (error) {
+      console.error('Unexpected error:', error);
       toast({
         title: "Erreur",
         description: "Une erreur inattendue s'est produite",
@@ -60,26 +63,33 @@ const Auth = () => {
     }
   };
 
+  const fillAdminCredentials = () => {
+    setEmail('admin@gmail.com');
+    setPassword('admin1234');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <img 
-              src="/lovable-uploads/2eb7dc4c-f6d2-4178-a79c-fba9a54d7278.png" 
-              alt="Cabek Logo" 
-              className="h-16 w-auto"
-            />
+          <div className="flex justify-center mb-6">
+            <div className="bg-white rounded-2xl p-4 shadow-lg border-2 border-blue-100">
+              <img 
+                src="/lovable-uploads/2eb7dc4c-f6d2-4178-a79c-fba9a54d7278.png" 
+                alt="Cabek Logo" 
+                className="h-20 w-auto"
+              />
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Cabek</h1>
-          <p className="text-gray-600 mt-2">Système d'évaluation automobile par IA</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Cabek</h1>
+          <p className="text-gray-600 text-lg">Système d'évaluation automobile par IA</p>
         </div>
 
-        <Card className="shadow-lg">
-          <CardHeader>
+        <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader className="pb-4">
             <CardTitle className="text-2xl text-center flex items-center justify-center space-x-2">
-              <LogIn className="h-6 w-6" />
+              <LogIn className="h-6 w-6 text-blue-600" />
               <span>Connexion</span>
             </CardTitle>
           </CardHeader>
@@ -93,6 +103,7 @@ const Auth = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  className="h-11"
                 />
               </div>
               
@@ -104,21 +115,35 @@ const Auth = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  className="h-11"
                 />
               </div>
               
               <Button 
                 type="submit" 
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium"
                 disabled={loading}
               >
                 {loading ? 'Connexion...' : 'Se connecter'}
               </Button>
             </form>
 
-            <div className="mt-6 p-3 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800">
-                <strong>Compte administrateur par défaut:</strong><br />
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-semibold text-blue-800">
+                  Compte administrateur par défaut:
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={fillAdminCredentials}
+                  className="text-xs h-7 px-2"
+                >
+                  Utiliser
+                </Button>
+              </div>
+              <p className="text-sm text-blue-700">
                 Email: admin@gmail.com<br />
                 Mot de passe: admin1234
               </p>
