@@ -9,7 +9,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Users, UserPlus, Settings, Trash2 } from 'lucide-react';
-import Header from '@/components/Header';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 interface User {
   id: string;
@@ -44,6 +51,7 @@ const Admin = () => {
 
   const fetchUsers = async () => {
     try {
+      console.log('Fetching users...');
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -51,17 +59,38 @@ const Admin = () => {
           email,
           first_name,
           last_name,
-          created_at,
-          user_roles (role)
+          created_at
         `);
 
-      if (profilesError) throw profilesError;
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        throw profilesError;
+      }
 
-      const usersWithRoles = profiles?.map(profile => ({
-        ...profile,
-        role: (profile.user_roles as any)?.[0]?.role || 'user'
-      })) || [];
+      console.log('Profiles fetched:', profiles);
 
+      // Fetch roles for each user
+      const { data: roles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) {
+        console.error('Error fetching roles:', rolesError);
+        throw rolesError;
+      }
+
+      console.log('Roles fetched:', roles);
+
+      // Combine profiles with roles
+      const usersWithRoles = profiles?.map(profile => {
+        const userRole = roles?.find(role => role.user_id === profile.id);
+        return {
+          ...profile,
+          role: userRole?.role || 'user'
+        };
+      }) || [];
+
+      console.log('Users with roles:', usersWithRoles);
       setUsers(usersWithRoles);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -80,30 +109,43 @@ const Admin = () => {
     setLoading(true);
 
     try {
-      // Create user in Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      console.log('Creating user:', newUser.email);
+      
+      // Use regular signUp method
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUser.email,
         password: newUser.password,
-        user_metadata: {
-          first_name: newUser.firstName,
-          last_name: newUser.lastName
+        options: {
+          data: {
+            first_name: newUser.firstName,
+            last_name: newUser.lastName
+          },
+          emailRedirectTo: `${window.location.origin}/`
         }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        console.error('Auth error:', authError);
+        throw authError;
+      }
 
-      // The trigger will automatically create the profile and assign the default role
-      // We need to update the role if it's different from 'user'
+      console.log('User created:', authData);
+
+      // If user was created successfully and we need to assign admin role
       if (newUser.role === 'admin' && authData.user) {
-        await supabase
+        const { error: roleError } = await supabase
           .from('user_roles')
           .update({ role: 'admin' })
           .eq('user_id', authData.user.id);
+
+        if (roleError) {
+          console.error('Error updating role:', roleError);
+        }
       }
 
       toast({
         title: "Utilisateur créé",
-        description: `L'utilisateur ${newUser.email} a été créé avec succès`,
+        description: `L'utilisateur ${newUser.email} a été créé avec succès. Un email de confirmation a été envoyé.`,
       });
 
       // Reset form
@@ -117,7 +159,9 @@ const Admin = () => {
       setShowAddUser(false);
       
       // Refresh users list
-      fetchUsers();
+      setTimeout(() => {
+        fetchUsers();
+      }, 1000);
     } catch (error: any) {
       console.error('Error creating user:', error);
       toast({
@@ -136,8 +180,18 @@ const Admin = () => {
     }
 
     try {
-      const { error } = await supabase.auth.admin.deleteUser(userId);
-      if (error) throw error;
+      console.log('Deleting user:', userId);
+      
+      // Delete from profiles table (this will cascade to user_roles)
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+
+      if (error) {
+        console.error('Error deleting user:', error);
+        throw error;
+      }
 
       toast({
         title: "Utilisateur supprimé",
@@ -155,203 +209,251 @@ const Admin = () => {
     }
   };
 
+  const handleRoleChange = async (userId: string, newRole: 'admin' | 'user') => {
+    try {
+      console.log('Updating role for user:', userId, 'to:', newRole);
+      
+      const { error } = await supabase
+        .from('user_roles')
+        .update({ role: newRole })
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Error updating role:', error);
+        throw error;
+      }
+
+      toast({
+        title: "Rôle mis à jour",
+        description: `Le rôle de l'utilisateur a été mis à jour`,
+      });
+
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error updating role:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le rôle",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (userRole !== 'admin') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
-        <Header />
-        <div className="container mx-auto px-6 py-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-red-600 mb-4">Accès refusé</h1>
-            <p className="text-gray-600">Vous n'avez pas les droits d'administrateur.</p>
-          </div>
-        </div>
+      <div className="text-center">
+        <h1 className="text-2xl font-bold text-red-600 mb-4">Accès refusé</h1>
+        <p className="text-gray-600">Vous n'avez pas les droits d'administrateur.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
-      <Header />
-      
-      <div className="container mx-auto px-6 py-8">
-        <div className="mb-6">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Administration</h2>
-          <p className="text-gray-600">Gestion des utilisateurs et du système</p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Gestion des utilisateurs</h2>
+        <p className="text-gray-600">Administration des comptes utilisateurs</p>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Statistics */}
-          <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <Users className="h-8 w-8 text-blue-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">Total Utilisateurs</p>
-                    <p className="text-2xl font-bold">{users.length}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <Settings className="h-8 w-8 text-green-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">Administrateurs</p>
-                    <p className="text-2xl font-bold">{users.filter(u => u.role === 'admin').length}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <UserPlus className="h-8 w-8 text-purple-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">Utilisateurs</p>
-                    <p className="text-2xl font-bold">{users.filter(u => u.role === 'user').length}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+      {/* Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Users className="h-8 w-8 text-blue-600" />
+              <div>
+                <p className="text-sm text-gray-600">Total Utilisateurs</p>
+                <p className="text-2xl font-bold">{users.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Settings className="h-8 w-8 text-green-600" />
+              <div>
+                <p className="text-sm text-gray-600">Administrateurs</p>
+                <p className="text-2xl font-bold">{users.filter(u => u.role === 'admin').length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <UserPlus className="h-8 w-8 text-purple-600" />
+              <div>
+                <p className="text-sm text-gray-600">Utilisateurs</p>
+                <p className="text-2xl font-bold">{users.filter(u => u.role === 'user').length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-          {/* Add User Form */}
-          <Card className="lg:col-span-1">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <UserPlus className="h-5 w-5" />
-                <span>Ajouter un utilisateur</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {!showAddUser ? (
-                <Button 
-                  onClick={() => setShowAddUser(true)}
-                  className="w-full"
-                >
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Nouveau utilisateur
-                </Button>
-              ) : (
-                <form onSubmit={handleAddUser} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <Label htmlFor="firstName">Prénom</Label>
-                      <Input
-                        id="firstName"
-                        value={newUser.firstName}
-                        onChange={(e) => setNewUser({...newUser, firstName: e.target.value})}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="lastName">Nom</Label>
-                      <Input
-                        id="lastName"
-                        value={newUser.lastName}
-                        onChange={(e) => setNewUser({...newUser, lastName: e.target.value})}
-                        required
-                      />
-                    </div>
-                  </div>
-                  
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Add User Form */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <UserPlus className="h-5 w-5" />
+              <span>Ajouter un utilisateur</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {!showAddUser ? (
+              <Button 
+                onClick={() => setShowAddUser(true)}
+                className="w-full"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Nouveau utilisateur
+              </Button>
+            ) : (
+              <form onSubmit={handleAddUser} className="space-y-4">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="firstName">Prénom</Label>
                     <Input
-                      id="email"
-                      type="email"
-                      value={newUser.email}
-                      onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                      id="firstName"
+                      value={newUser.firstName}
+                      onChange={(e) => setNewUser({...newUser, firstName: e.target.value})}
                       required
                     />
                   </div>
-                  
                   <div>
-                    <Label htmlFor="password">Mot de passe</Label>
+                    <Label htmlFor="lastName">Nom</Label>
                     <Input
-                      id="password"
-                      type="password"
-                      value={newUser.password}
-                      onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                      id="lastName"
+                      value={newUser.lastName}
+                      onChange={(e) => setNewUser({...newUser, lastName: e.target.value})}
                       required
                     />
                   </div>
-                  
-                  <div>
-                    <Label htmlFor="role">Rôle</Label>
-                    <Select value={newUser.role} onValueChange={(value: 'admin' | 'user') => setNewUser({...newUser, role: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="user">Utilisateur</SelectItem>
-                        <SelectItem value="admin">Administrateur</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="flex space-x-2">
-                    <Button type="submit" disabled={loading} className="flex-1">
-                      {loading ? 'Création...' : 'Créer'}
-                    </Button>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setShowAddUser(false)}
-                    >
-                      Annuler
-                    </Button>
-                  </div>
-                </form>
-              )}
-            </CardContent>
-          </Card>
+                </div>
+                
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={newUser.email}
+                    onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="password">Mot de passe</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={newUser.password}
+                    onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                    required
+                    minLength={6}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="role">Rôle</Label>
+                  <Select value={newUser.role} onValueChange={(value: 'admin' | 'user') => setNewUser({...newUser, role: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="user">Utilisateur</SelectItem>
+                      <SelectItem value="admin">Administrateur</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex space-x-2">
+                  <Button type="submit" disabled={loading} className="flex-1">
+                    {loading ? 'Création...' : 'Créer'}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setShowAddUser(false)}
+                  >
+                    Annuler
+                  </Button>
+                </div>
+              </form>
+            )}
+          </CardContent>
+        </Card>
 
-          {/* Users List */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Users className="h-5 w-5" />
-                <span>Liste des utilisateurs</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <p>Chargement...</p>
-              ) : (
-                <div className="space-y-3">
+        {/* Users List */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Users className="h-5 w-5" />
+              <span>Liste des utilisateurs</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <p>Chargement...</p>
+            ) : users.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">Aucun utilisateur trouvé</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nom</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Rôle</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {users.map((user) => (
-                    <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <p className="font-medium">{user.first_name} {user.last_name}</p>
-                        <p className="text-sm text-gray-600">{user.email}</p>
-                        <span className={`inline-block px-2 py-1 text-xs rounded-full ${
-                          user.role === 'admin' 
-                            ? 'bg-blue-100 text-blue-800' 
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {user.role === 'admin' ? 'Administrateur' : 'Utilisateur'}
-                        </span>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteUser(user.id, user.email)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div className="font-medium">
+                          {user.first_name && user.last_name 
+                            ? `${user.first_name} ${user.last_name}`
+                            : 'Nom non renseigné'
+                          }
+                        </div>
+                      </TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>
+                        <Select 
+                          value={user.role} 
+                          onValueChange={(value: 'admin' | 'user') => handleRoleChange(user.id, value)}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="user">Utilisateur</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteUser(user.id, user.email)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
