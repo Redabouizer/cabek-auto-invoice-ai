@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,6 +13,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminProfile from "./pages/AdminProfile";
 import NouvelleEstimation from "./pages/NouvelleEstimation";
 import NotFound from "./pages/NotFound";
+import EstimationManagement from "./pages/EstimationManagement";
 
 const queryClient = new QueryClient();
 
@@ -48,7 +48,7 @@ const App = () => (
               <Route index element={<AdminDashboard />} />
               <Route path="profile" element={<AdminProfile />} />
               <Route path="users" element={<Admin />} />
-              <Route path="evaluations" element={<div>Évaluations Management - Coming Soon</div>} />
+              <Route path="evaluations" element={<EstimationManagement />} />
               <Route path="cars" element={<div>Cars Management - Coming Soon</div>} />
             </Route>
             

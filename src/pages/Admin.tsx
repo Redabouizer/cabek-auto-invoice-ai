@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import AdminPasswordVerification from '@/components/AdminPasswordVerification';
 
 interface User {
   id: string;
@@ -41,6 +41,12 @@ const Admin = () => {
     firstName: '',
     lastName: '',
     role: 'user' as 'admin' | 'user'
+  });
+
+  const [passwordVerification, setPasswordVerification] = useState({
+    isOpen: false,
+    action: '',
+    callback: () => {}
   });
 
   useEffect(() => {
@@ -104,74 +110,94 @@ const Admin = () => {
     }
   };
 
+  const requestPasswordVerification = (action: string, callback: () => void) => {
+    setPasswordVerification({
+      isOpen: true,
+      action,
+      callback
+    });
+  };
+
+  const handlePasswordVerified = () => {
+    passwordVerification.callback();
+    setPasswordVerification({
+      isOpen: false,
+      action: '',
+      callback: () => {}
+    });
+  };
+
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    
+    requestPasswordVerification('créer un nouvel utilisateur', async () => {
+      setLoading(true);
 
-    try {
-      console.log('Creating user:', newUser.email);
-      
-      // Use regular signUp method
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: newUser.email,
-        password: newUser.password,
-        options: {
-          data: {
-            first_name: newUser.firstName,
-            last_name: newUser.lastName
-          },
-          emailRedirectTo: `${window.location.origin}/`
+      try {
+        console.log('Creating user:', newUser.email);
+        
+        // Use regular signUp method
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: newUser.email,
+          password: newUser.password,
+          options: {
+            data: {
+              first_name: newUser.firstName,
+              last_name: newUser.lastName
+            },
+            emailRedirectTo: `${window.location.origin}/`
+          }
+        });
+
+        if (authError) {
+          console.error('Auth error:', authError);
+          throw authError;
         }
-      });
 
-      if (authError) {
-        console.error('Auth error:', authError);
-        throw authError;
-      }
+        console.log('User created:', authData);
 
-      console.log('User created:', authData);
+        // If user was created successfully and we need to assign admin role
+        if (newUser.role === 'admin' && authData.user) {
+          const { error: roleError } = await supabase
+            .from('user_roles')
+            .update({ role: 'admin' })
+            .eq('user_id', authData.user.id);
 
-      // If user was created successfully and we need to assign admin role
-      if (newUser.role === 'admin' && authData.user) {
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .update({ role: 'admin' })
-          .eq('user_id', authData.user.id);
-
-        if (roleError) {
-          console.error('Error updating role:', roleError);
+          if (roleError) {
+            console.error('Error updating role:', roleError);
+          }
         }
+
+        toast({
+          title: "Utilisateur créé",
+          description: `L'utilisateur ${newUser.email} a été créé avec succès. Un email de confirmation a été envoyé.`,
+        });
+
+        // Reset form
+        setNewUser({
+          email: '',
+          password: '',
+          firstName: '',
+          lastName: '',
+          role: 'user'
+        });
+        setShowAddUser(false);
+        
+        // Refresh users list
+        setTimeout(() => {
+          fetchUsers();
+        }, 1000);
+      } catch (error: any) {
+        console.error('Error creating user:', error);
+        toast({
+          title: "Erreur",
+          description: error.message || "Impossible de créer l'utilisateur",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
       }
-
-      toast({
-        title: "Utilisateur créé",
-        description: `L'utilisateur ${newUser.email} a été créé avec succès. Un email de confirmation a été envoyé.`,
-      });
-
-      // Reset form
-      setNewUser({
-        email: '',
-        password: '',
-        firstName: '',
-        lastName: '',
-        role: 'user'
-      });
-      setShowAddUser(false);
-      
-      // Refresh users list
-      setTimeout(() => {
-        fetchUsers();
-      }, 1000);
-    } catch (error: any) {
-      console.error('Error creating user:', error);
-      toast({
-        title: "Erreur",
-        description: error.message || "Impossible de créer l'utilisateur",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   const handleDeleteUser = async (userId: string, email: string) => {
@@ -179,64 +205,68 @@ const Admin = () => {
       return;
     }
 
-    try {
-      console.log('Deleting user:', userId);
-      
-      // Delete from profiles table (this will cascade to user_roles)
-      const { error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId);
+    requestPasswordVerification(`supprimer l'utilisateur ${email}`, async () => {
+      try {
+        console.log('Deleting user:', userId);
+        
+        // Delete from profiles table (this will cascade to user_roles)
+        const { error } = await supabase
+          .from('profiles')
+          .delete()
+          .eq('id', userId);
 
-      if (error) {
+        if (error) {
+          console.error('Error deleting user:', error);
+          throw error;
+        }
+
+        toast({
+          title: "Utilisateur supprimé",
+          description: `L'utilisateur ${email} a été supprimé`,
+        });
+
+        fetchUsers();
+      } catch (error: any) {
         console.error('Error deleting user:', error);
-        throw error;
+        toast({
+          title: "Erreur",
+          description: "Impossible de supprimer l'utilisateur",
+          variant: "destructive",
+        });
       }
-
-      toast({
-        title: "Utilisateur supprimé",
-        description: `L'utilisateur ${email} a été supprimé`,
-      });
-
-      fetchUsers();
-    } catch (error: any) {
-      console.error('Error deleting user:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de supprimer l'utilisateur",
-        variant: "destructive",
-      });
-    }
+    });
   };
 
   const handleRoleChange = async (userId: string, newRole: 'admin' | 'user') => {
-    try {
-      console.log('Updating role for user:', userId, 'to:', newRole);
-      
-      const { error } = await supabase
-        .from('user_roles')
-        .update({ role: newRole })
-        .eq('user_id', userId);
+    requestPasswordVerification(`modifier le rôle de l'utilisateur`, async () => {
+      try {
+        console.log('Updating role for user:', userId, 'to:', newRole);
+        
+        const { error } = await supabase
+          .from('user_roles')
+          .update({ role: newRole })
+          .eq('user_id', userId);
 
-      if (error) {
+        if (error) {
+          console.error('Error updating role:', error);
+          throw error;
+        }
+
+        toast({
+          title: "Rôle mis à jour",
+          description: `Le rôle de l'utilisateur a été mis à jour`,
+        });
+
+        fetchUsers();
+      } catch (error: any) {
         console.error('Error updating role:', error);
-        throw error;
+        toast({
+          title: "Erreur",
+          description: "Impossible de mettre à jour le rôle",
+          variant: "destructive",
+        });
       }
-
-      toast({
-        title: "Rôle mis à jour",
-        description: `Le rôle de l'utilisateur a été mis à jour`,
-      });
-
-      fetchUsers();
-    } catch (error: any) {
-      console.error('Error updating role:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour le rôle",
-        variant: "destructive",
-      });
-    }
+    });
   };
 
   if (userRole !== 'admin') {
@@ -455,6 +485,13 @@ const Admin = () => {
           </CardContent>
         </Card>
       </div>
+
+      <AdminPasswordVerification
+        isOpen={passwordVerification.isOpen}
+        onClose={() => setPasswordVerification({ isOpen: false, action: '', callback: () => {} })}
+        onVerified={handlePasswordVerified}
+        action={passwordVerification.action}
+      />
     </div>
   );
 };

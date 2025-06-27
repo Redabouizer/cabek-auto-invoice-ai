@@ -33,10 +33,10 @@ const AdminLayout = () => {
     },
     {
       id: 'evaluations',
-      title: 'Gestion des évaluations',
+      title: 'Gestion des Estimations',
       icon: FileText,
       path: '/admin/evaluations',
-      description: 'Gérer les évaluations de dommages'
+      description: 'Gérer et consulter les estimations'
     },
     {
       id: 'cars',
