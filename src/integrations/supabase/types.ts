@@ -11,8 +11,11 @@ export type Database = {
     Tables: {
       cars: {
         Row: {
+          api_fetched_data: Json | null
+          client_id: string | null
           color: string | null
           created_at: string
+          fetch_date: string | null
           id: string
           license_plate: string | null
           make: string
@@ -26,8 +29,11 @@ export type Database = {
           year: number
         }
         Insert: {
+          api_fetched_data?: Json | null
+          client_id?: string | null
           color?: string | null
           created_at?: string
+          fetch_date?: string | null
           id?: string
           license_plate?: string | null
           make: string
@@ -41,8 +47,11 @@ export type Database = {
           year: number
         }
         Update: {
+          api_fetched_data?: Json | null
+          client_id?: string | null
           color?: string | null
           created_at?: string
+          fetch_date?: string | null
           id?: string
           license_plate?: string | null
           make?: string
@@ -55,11 +64,60 @@ export type Database = {
           vin?: string | null
           year?: number
         }
+        Relationships: [
+          {
+            foreignKeyName: "cars_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          insurance_company: string | null
+          insurance_contact: string | null
+          insurance_policy_number: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          insurance_company?: string | null
+          insurance_contact?: string | null
+          insurance_policy_number?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          insurance_company?: string | null
+          insurance_contact?: string | null
+          insurance_policy_number?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
         Relationships: []
       }
       evaluations: {
         Row: {
+          ai_damage_analysis: Json | null
           car_id: string | null
+          client_id: string | null
           created_at: string
           damage_description: string | null
           damage_severity: string | null
@@ -67,14 +125,22 @@ export type Database = {
           evaluation_date: string
           evaluator_id: string | null
           id: string
+          location_address: string | null
+          location_latitude: number | null
+          location_longitude: number | null
           notes: string | null
+          pdf_invoice_url: string | null
           photos_urls: string[] | null
           repair_time_days: number | null
           status: string | null
+          submission_status: string | null
+          total_cost: number | null
           updated_at: string
         }
         Insert: {
+          ai_damage_analysis?: Json | null
           car_id?: string | null
+          client_id?: string | null
           created_at?: string
           damage_description?: string | null
           damage_severity?: string | null
@@ -82,14 +148,22 @@ export type Database = {
           evaluation_date?: string
           evaluator_id?: string | null
           id?: string
+          location_address?: string | null
+          location_latitude?: number | null
+          location_longitude?: number | null
           notes?: string | null
+          pdf_invoice_url?: string | null
           photos_urls?: string[] | null
           repair_time_days?: number | null
           status?: string | null
+          submission_status?: string | null
+          total_cost?: number | null
           updated_at?: string
         }
         Update: {
+          ai_damage_analysis?: Json | null
           car_id?: string | null
+          client_id?: string | null
           created_at?: string
           damage_description?: string | null
           damage_severity?: string | null
@@ -97,10 +171,16 @@ export type Database = {
           evaluation_date?: string
           evaluator_id?: string | null
           id?: string
+          location_address?: string | null
+          location_latitude?: number | null
+          location_longitude?: number | null
           notes?: string | null
+          pdf_invoice_url?: string | null
           photos_urls?: string[] | null
           repair_time_days?: number | null
           status?: string | null
+          submission_status?: string | null
+          total_cost?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -109,6 +189,13 @@ export type Database = {
             columns: ["car_id"]
             isOneToOne: false
             referencedRelation: "cars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]

@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminProfile from "./pages/AdminProfile";
+import NouvelleEstimation from "./pages/NouvelleEstimation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,13 @@ const App = () => (
             <Route path="/" element={
               <ProtectedRoute>
                 <Index />
+              </ProtectedRoute>
+            } />
+            
+            {/* Nouvelle Estimation Route */}
+            <Route path="/nouvelle-estimation" element={
+              <ProtectedRoute>
+                <NouvelleEstimation />
               </ProtectedRoute>
             } />
             

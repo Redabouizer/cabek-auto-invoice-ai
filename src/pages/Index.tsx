@@ -1,8 +1,9 @@
 
 import { useState } from 'react';
-import { Car, Camera, FileText, Upload, Brain, CheckCircle } from 'lucide-react';
+import { Car, Camera, FileText, Upload, Brain, CheckCircle, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Link } from 'react-router-dom';
 import PhotoUpload from '@/components/PhotoUpload';
 import DamageAnalysis from '@/components/DamageAnalysis';
 import InvoiceGenerator from '@/components/InvoiceGenerator';
@@ -56,14 +57,31 @@ const Index = () => {
         {/* Welcome message for different user roles */}
         <div className="mb-6 text-center">
           <h2 className="text-2xl font-semibold text-gray-800">
-            {userRole === 'admin' ? 'Tableau de bord Administrateur' : 'Nouvelle Évaluation'}
+            {userRole === 'admin' ? 'Tableau de bord Administrateur' : 'Bienvenue sur Cabek'}
           </h2>
           <p className="text-gray-600 mt-2">
             {userRole === 'admin' 
-              ? 'Bienvenue dans le système d\'administration Cabek'
-              : 'Commencez une nouvelle évaluation de dommages'
+              ? 'Système d\'estimation de dommages automobiles'
+              : 'Système d\'estimation de dommages automobiles'
             }
           </p>
+        </div>
+
+        {/* Quick Action - New Estimation */}
+        <div className="mb-8 text-center">
+          <Link to="/nouvelle-estimation">
+            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 text-lg">
+              <Plus className="h-6 w-6 mr-3" />
+              Nouvelle Estimation Complète
+            </Button>
+          </Link>
+          <p className="text-sm text-gray-600 mt-2">
+            Formulaire complet avec informations client, véhicule et assurance
+          </p>
+        </div>
+
+        <div className="text-center mb-6">
+          <h3 className="text-lg font-medium text-gray-700">ou utilisez l'estimation rapide ci-dessous</h3>
         </div>
 
         {/* Progress Steps */}
@@ -108,10 +126,10 @@ const Index = () => {
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl flex items-center justify-center space-x-2">
                   <Upload className="h-8 w-8 text-blue-600" />
-                  <span>Téléchargement des photos</span>
+                  <span>Estimation Rapide - Téléchargement des photos</span>
                 </CardTitle>
                 <p className="text-gray-600 mt-2">
-                  Veuillez télécharger les photos du véhicule endommagé sous tous les angles pour obtenir une analyse précise.
+                  Téléchargez rapidement les photos pour une estimation basique (sans données client/véhicule)
                 </p>
               </CardHeader>
               <CardContent>
@@ -145,10 +163,10 @@ const Index = () => {
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl flex items-center justify-center space-x-2">
                   <FileText className="h-8 w-8 text-blue-600" />
-                  <span>Facture générée</span>
+                  <span>Estimation rapide générée</span>
                 </CardTitle>
                 <p className="text-gray-600 mt-2">
-                  Facture d'estimation des réparations basée sur l'analyse de l'intelligence artificielle.
+                  Estimation basique basée sur l'analyse IA (pour une estimation complète, utilisez le formulaire détaillé)
                 </p>
               </CardHeader>
               <CardContent>
@@ -160,7 +178,7 @@ const Index = () => {
 
         {/* Reset Button */}
         {currentStep > 0 && (
-          <div className="text-center mt-8">
+          <div className="text-center mt-8 space-y-4">
             <Button 
               variant="outline" 
               onClick={() => {
@@ -170,7 +188,7 @@ const Index = () => {
               }}
               className="bg-white hover:bg-gray-50"
             >
-              Nouvelle évaluation
+              Nouvelle estimation rapide
             </Button>
           </div>
         )}
