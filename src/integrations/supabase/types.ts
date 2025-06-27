@@ -9,6 +9,146 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      cars: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          license_plate: string | null
+          make: string
+          mileage: number | null
+          model: string
+          owner_email: string | null
+          owner_name: string | null
+          owner_phone: string | null
+          updated_at: string
+          vin: string | null
+          year: number
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          license_plate?: string | null
+          make: string
+          mileage?: number | null
+          model: string
+          owner_email?: string | null
+          owner_name?: string | null
+          owner_phone?: string | null
+          updated_at?: string
+          vin?: string | null
+          year: number
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          license_plate?: string | null
+          make?: string
+          mileage?: number | null
+          model?: string
+          owner_email?: string | null
+          owner_name?: string | null
+          owner_phone?: string | null
+          updated_at?: string
+          vin?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
+      evaluations: {
+        Row: {
+          car_id: string | null
+          created_at: string
+          damage_description: string | null
+          damage_severity: string | null
+          estimated_cost: number | null
+          evaluation_date: string
+          evaluator_id: string | null
+          id: string
+          notes: string | null
+          photos_urls: string[] | null
+          repair_time_days: number | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          car_id?: string | null
+          created_at?: string
+          damage_description?: string | null
+          damage_severity?: string | null
+          estimated_cost?: number | null
+          evaluation_date?: string
+          evaluator_id?: string | null
+          id?: string
+          notes?: string | null
+          photos_urls?: string[] | null
+          repair_time_days?: number | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          car_id?: string | null
+          created_at?: string
+          damage_description?: string | null
+          damage_severity?: string | null
+          estimated_cost?: number | null
+          evaluation_date?: string
+          evaluator_id?: string | null
+          id?: string
+          notes?: string | null
+          photos_urls?: string[] | null
+          repair_time_days?: number | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluations_car_id_fkey"
+            columns: ["car_id"]
+            isOneToOne: false
+            referencedRelation: "cars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      other_data: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

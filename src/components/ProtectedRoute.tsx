@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 
@@ -11,6 +11,14 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin = false }) => {
   const { user, userRole, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // Auto-redirect admin users to admin dashboard
+  useEffect(() => {
+    if (!loading && user && userRole === 'admin' && window.location.pathname === '/') {
+      navigate('/admin');
+    }
+  }, [user, userRole, loading, navigate]);
 
   if (loading) {
     return (
