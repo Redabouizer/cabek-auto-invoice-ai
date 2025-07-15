@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -500,7 +499,7 @@ const EstimationForm = () => {
                           type="number" 
                           placeholder="2020" 
                           {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value))}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                         />
                       </FormControl>
                       <FormMessage />
@@ -514,7 +513,7 @@ const EstimationForm = () => {
                     <FormItem>
                       <FormLabel>Couleur</FormLabel>
                       <FormControl>
-                        <Input placeholder="Gris" {...field} />
+                        <Input placeholder="Rouge" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -529,9 +528,9 @@ const EstimationForm = () => {
                       <FormControl>
                         <Input 
                           type="number" 
-                          placeholder="80000" 
+                          placeholder="50000" 
                           {...field}
-                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
                         />
                       </FormControl>
                       <FormMessage />
@@ -543,9 +542,9 @@ const EstimationForm = () => {
                   name="vin"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <FormLabel>Numéro VIN</FormLabel>
+                      <FormLabel>Numéro de châssis (VIN)</FormLabel>
                       <FormControl>
-                        <Input placeholder="VF1LB1B0H46123456" {...field} />
+                        <Input placeholder="WVWZZZ1KZ3W123456" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -561,274 +560,226 @@ const EstimationForm = () => {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <MapPin className="h-6 w-6 text-blue-600" />
-                  <span>Localisation</span>
+                  <span>Localisation du sinistre</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <LocationTracker onLocationUpdate={setLocation} />
+                <LocationTracker />
+                {location && (
+                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-green-800 font-medium">Localisation capturée:</p>
+                    <p className="text-sm text-green-700">{location.address}</p>
+                    <p className="text-xs text-green-600">
+                      Coordonnées: {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
 
-          {/* Step 4: Télécharger Photos */}
+          {/* Step 4: Photo Upload */}
           {currentStep === 4 && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <Upload className="h-6 w-6 text-blue-600" />
-                  <span>Téléchargement des Photos</span>
+                  <Camera className="h-6 w-6 text-blue-600" />
+                  <span>Photos des dommages</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <PhotoUploadSection onImagesUploaded={setUploadedImages} />
+                <PhotoUploadSection />
               </CardContent>
             </Card>
           )}
 
-          {/* Step 5: Analyse IA */}
+          {/* Step 5: AI Analysis */}
           {currentStep === 5 && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Brain className="h-6 w-6 text-blue-600" />
-                  <span>Analyse IA</span>
+                  <span>Analyse IA des dommages</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-center py-12">
-                {!isAnalyzing && !analysisComplete && (
-                  <div className="space-y-4">
-                    <Brain className="h-16 w-16 text-blue-500 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold">Prêt pour l'analyse IA</h3>
-                    <p className="text-gray-600 max-w-md mx-auto">
-                      Notre intelligence artificielle va analyser les photos téléchargées pour détecter et évaluer automatiquement les dommages.
-                    </p>
-                    <Button 
-                      onClick={() => {
-                        setIsAnalyzing(true);
-                        // Simulate AI analysis
-                        setTimeout(() => {
-                          setIsAnalyzing(false);
-                          setAnalysisComplete(true);
-                          setDamageAnalysis({
-                            confidence: '92%',
-                             damages: [
-                               { type: 'Rayure profonde', location: 'Portière avant droite', severity: 'Modéré', cost: 4500 },
-                               { type: 'Bosse', location: 'Aile arrière gauche', severity: 'Léger', cost: 3200 },
-                               { type: 'Phare endommagé', location: 'Avant du véhicule', severity: 'Important', cost: 2800 },
-                               { type: 'Éraflure', location: 'Pare-chocs avant', severity: 'Léger', cost: 1800 }
-                             ],
-                             totalCost: 12300
-                          });
-                          toast({
-                            title: "Analyse terminée",
-                            description: "L'IA a détecté et analysé les dommages avec 92% de confiance",
-                          });
-                        }, 3000);
-                      }}
-                      disabled={uploadedImages.length === 0}
-                      className="px-8 py-3"
-                    >
-                      <Brain className="h-4 w-4 mr-2" />
-                      Analyser les Photos ({uploadedImages.length})
-                    </Button>
-                  </div>
-                )}
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="damageDescription"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>Description des dommages *</FormLabel>
+                        <FormControl>
+                          <textarea 
+                            className="w-full p-3 border border-gray-300 rounded-md"
+                            rows={4}
+                            placeholder="Décrivez en détail les dommages observés sur le véhicule..."
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="damageSeverity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Gravité des dommages *</FormLabel>
+                        <FormControl>
+                          <select 
+                            className="w-full p-3 border border-gray-300 rounded-md"
+                            {...field}
+                          >
+                            <option value="léger">Léger</option>
+                            <option value="modéré">Modéré</option>
+                            <option value="grave">Grave</option>
+                            <option value="total">Total</option>
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-                {isAnalyzing && (
-                  <div className="space-y-4">
-                    <Loader className="h-16 w-16 text-blue-500 mx-auto animate-spin" />
-                    <h3 className="text-xl font-semibold">Analyse IA en cours</h3>
-                    <p className="text-gray-600">
-                      Notre intelligence artificielle analyse les dommages détectés sur les photos...
-                    </p>
-                    <div className="w-full bg-gray-200 rounded-full h-2 max-w-md mx-auto">
-                      <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{width: '68%'}}></div>
-                    </div>
-                    <p className="text-sm text-gray-500">Évaluation des impacts...</p>
-                  </div>
-                )}
+                <div className="space-y-4">
+                  <Button
+                    type="button"
+                    onClick={async () => {
+                      if (!uploadedImages.length) {
+                        toast({
+                          title: "Photos requises",
+                          description: "Veuillez télécharger au moins une photo pour l'analyse",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
 
-                {analysisComplete && damageAnalysis && (
-                  <div className="text-left space-y-6">
-                    <div className="text-center">
-                      <div className="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full mb-4">
-                        <Brain className="h-5 w-5 mr-2" />
-                        Analyse Terminée - Confiance IA: {damageAnalysis.confidence}
-                      </div>
-                    </div>
-                    
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="font-semibold mb-3">Dommages Détectés</h4>
+                      setIsAnalyzing(true);
+                      
+                      // Simulate AI analysis
+                      setTimeout(() => {
+                        const mockAnalysis = {
+                          damages: [
+                            {
+                              type: "Portière avant droite",
+                              location: "AR-G",
+                              severity: "modéré",
+                              cost: 4500,
+                              description: "Rayures et bosses importantes"
+                            },
+                            {
+                              type: "Phare avant",
+                              location: "AV-D",
+                              severity: "grave",
+                              cost: 2800,
+                              description: "Phare cassé nécessitant remplacement"
+                            },
+                            {
+                              type: "Pare-chocs avant",
+                              location: "AV-C",
+                              severity: "léger",
+                              cost: 1200,
+                              description: "Éraflures superficielles"
+                            }
+                          ],
+                          totalCost: 8500,
+                          recommendations: "Réparation recommandée dans les 30 jours"
+                        };
+                        
+                        setDamageAnalysis(mockAnalysis);
+                        setIsAnalyzing(false);
+                        setAnalysisComplete(true);
+                        
+                        toast({
+                          title: "Analyse terminée",
+                          description: "L'IA a analysé les dommages avec succès",
+                        });
+                      }, 3000);
+                    }}
+                    disabled={isAnalyzing}
+                    className="w-full"
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <Loader className="h-4 w-4 mr-2 animate-spin" />
+                        Analyse en cours...
+                      </>
+                    ) : (
+                      "Lancer l'analyse IA"
+                    )}
+                  </Button>
+
+                  {damageAnalysis && (
+                    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h3 className="font-bold text-blue-800 mb-3">Résultats de l'analyse IA</h3>
                       <div className="space-y-3">
                         {damageAnalysis.damages.map((damage: any, index: number) => (
-                          <div key={index} className="flex justify-between items-center p-3 bg-white rounded border">
-                            <div>
-                              <p className="font-medium">{damage.type}</p>
-                              <p className="text-sm text-gray-600">{damage.location}</p>
-                              <span className={`inline-block px-2 py-1 text-xs rounded ${
-                                damage.severity === 'Léger' ? 'bg-green-100 text-green-800' :
-                                damage.severity === 'Modéré' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-red-100 text-red-800'
-                              }`}>
-                                {damage.severity}
-                              </span>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-semibold">{damage.cost} DH</p>
+                          <div key={index} className="p-3 bg-white border border-blue-100 rounded">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="font-semibold">{damage.type}</p>
+                                <p className="text-sm text-gray-600">Position: {damage.location}</p>
+                                <p className="text-sm">{damage.description}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-bold text-blue-600">{damage.cost} DH</p>
+                                <span className={`px-2 py-1 rounded-full text-xs ${
+                                  damage.severity === 'grave' ? 'bg-red-100 text-red-800' :
+                                  damage.severity === 'modéré' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-green-100 text-green-800'
+                                }`}>
+                                  {damage.severity}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         ))}
-                      </div>
-                      <div className="mt-4 pt-4 border-t border-gray-200">
-                        <div className="flex justify-between items-center">
-                          <span className="font-semibold">Coût Total Estimé:</span>
-                          <span className="text-xl font-bold text-blue-600">{damageAnalysis.totalCost} DH</span>
+                        <div className="pt-3 border-t border-blue-200">
+                          <p className="text-lg font-bold text-blue-800">
+                            Coût total estimé: {damageAnalysis.totalCost} DH
+                          </p>
+                          <p className="text-sm text-blue-600 mt-1">{damageAnalysis.recommendations}</p>
                         </div>
                       </div>
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="damageSeverity"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Sévérité des dommages *</FormLabel>
-                            <FormControl>
-                              <select 
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                {...field}
-                              >
-                                <option value="léger">Léger</option>
-                                <option value="modéré">Modéré</option>
-                                <option value="grave">Grave</option>
-                                <option value="total">Perte totale</option>
-                              </select>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <FormField
-                      control={form.control}
-                      name="damageDescription"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Description détaillée des dommages *</FormLabel>
-                          <FormControl>
-                            <textarea
-                              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                              placeholder="Décrivez en détail les dommages observés..."
-                              {...field}
-                              defaultValue="Analyse IA: Rayure profonde sur portière avant droite, bosse sur aile arrière gauche, phare endommagé à l'avant, éraflure sur pare-chocs avant."
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
+                  )}
+                </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Step 6: Génération Facture */}
+          {/* Step 6: Invoice Generation */}
           {currentStep === 6 && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <FileText className="h-6 w-6 text-blue-600" />
-                  <span>Génération Facture</span>
+                  <span>Génération du devis</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-center py-12">
-                {!invoiceGenerated ? (
-                  <div className="space-y-4">
-                    <FileText className="h-16 w-16 text-blue-500 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold">Facture d'estimation des réparations</h3>
-                    <p className="text-gray-600 max-w-md mx-auto">
-                      Génération automatique de la facture basée sur l'analyse IA.
-                    </p>
-                    <Button 
-                      onClick={() => {
-                        setInvoiceGenerated(true);
-                        toast({
-                          title: "Facture générée",
-                          description: "La facture d'estimation a été générée avec succès",
-                        });
-                      }}
-                      disabled={!analysisComplete}
-                      className="px-8 py-3"
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Générer la Facture
-                    </Button>
-                  </div>
-                ) : (
+              <CardContent>
+                {analysisComplete && damageAnalysis ? (
                   <div className="space-y-6">
-                    <div className="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full mb-4">
-                      <FileText className="h-5 w-5 mr-2" />
-                      Facture Générée
-                    </div>
-                    
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-left max-w-md mx-auto">
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="font-bold text-lg">Devis d'Évaluation</h4>
-                        <span className="text-sm text-gray-600">N° CABEK-241901</span>
-                      </div>
-                      
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span>Photos analysées:</span>
-                          <span>{uploadedImages.length}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Date d'analyse:</span>
-                          <span>{new Date().toLocaleDateString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Confiance IA:</span>
-                          <span>{damageAnalysis?.confidence || '92%'}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="border-t border-blue-300 mt-4 pt-4">
-                        <h5 className="font-semibold mb-2">Détail des Dommages Détectés</h5>
-                        {damageAnalysis?.damages.map((damage: any, index: number) => (
-                          <div key={index} className="flex justify-between text-sm py-1">
-                            <span>{damage.type}</span>
-                            <span>{damage.cost} DH</span>
-                          </div>
-                        ))}
-                        
-                        <div className="border-t border-blue-300 mt-2 pt-2">
-                          <div className="flex justify-between font-bold">
-                            <span>Sous-total HT:</span>
-                             <span>{damageAnalysis?.totalCost || 12300} DH</span>
-                           </div>
-                           <div className="flex justify-between text-sm">
-                             <span>TVA (20%):</span>
-                             <span>{Math.round((damageAnalysis?.totalCost || 12300) * 0.2)} DH</span>
-                           </div>
-                           <div className="flex justify-between font-bold text-lg border-t border-blue-300 mt-1 pt-1">
-                             <span>Total TTC:</span>
-                             <span>{Math.round((damageAnalysis?.totalCost || 12300) * 1.2)} DH</span>
-                          </div>
-                        </div>
-                      </div>
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <h3 className="font-bold text-green-800 mb-2">Devis prêt à générer</h3>
+                      <p className="text-green-700">
+                        Coût total estimé: <span className="font-bold">{damageAnalysis.totalCost} DH</span>
+                      </p>
                     </div>
 
-                    <div className="flex gap-3 justify-center">
-                      <Button 
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <Button
+                        type="button"
                         variant="outline"
                         onClick={() => {
                           window.print();
                           toast({
-                            title: "Impression lancée",
-                            description: "La fenêtre d'impression va s'ouvrir",
+                            title: "Impression",
+                            description: "Document envoyé vers l'imprimante",
                           });
                         }}
                       >
@@ -836,198 +787,279 @@ const EstimationForm = () => {
                       </Button>
                       <Button
                         onClick={() => {
-                          // Generate professional PDF
+                          // Generate professional PDF matching the provided image format
                           import('jspdf').then(({ jsPDF }) => {
                             const doc = new jsPDF();
                             const formData = form.getValues();
                             const currentDate = new Date().toLocaleDateString('fr-FR');
+                            const devisNumber = `DE${Date.now().toString().slice(-8)}-GAV1`;
                             
-                            // Header
+                            // Header with blue background like in image
+                            doc.setFillColor(173, 216, 230); // Light blue
+                            doc.rect(0, 0, 210, 40, 'F');
+                            
+                            // Company logo section (left)
+                            doc.setFontSize(16);
+                            doc.setFont(undefined, 'bold');
+                            doc.setTextColor(0, 100, 200); // Blue color
+                            doc.text('🏢 Sanlam', 10, 15);
+                            
+                            // Devis number (right)
                             doc.setFontSize(20);
-                            doc.setFont(undefined, 'bold');
-                            doc.text('DEVIS D\'ESTIMATION', 105, 20, { align: 'center' });
+                            doc.setTextColor(0, 0, 0);
+                            doc.text(`Devis N° ${devisNumber}`, 105, 15);
                             
-                            // Devis number and date
+                            // Publication date and expert info
+                            doc.setFontSize(10);
+                            doc.text(`Date de publication  ${currentDate}`, 105, 25);
+                            doc.text('Garagiste  OMAK S.A.R.L', 105, 30);
+                            doc.text('Expert  CABEK', 105, 35);
+                            
+                            // Reset text color
+                            doc.setTextColor(0, 0, 0);
+                            
+                            // ASSURÉ section with background
+                            doc.setFillColor(173, 216, 230);
+                            doc.rect(10, 45, 90, 8, 'F');
                             doc.setFontSize(12);
-                            doc.setFont(undefined, 'normal');
-                            doc.text(`N° CABEK-${Date.now().toString().slice(-6)}`, 20, 35);
-                            doc.text(`Date: ${currentDate}`, 150, 35);
-                            
-                            // Client section
-                            doc.setFontSize(14);
                             doc.setFont(undefined, 'bold');
-                            doc.text('ASSURÉ', 20, 50);
-                            doc.setFontSize(10);
+                            doc.text('ASSURÉ', 12, 51);
+                            
+                            doc.setFontSize(9);
                             doc.setFont(undefined, 'normal');
-                            doc.text(`Nom: ${formData.clientName}`, 20, 60);
-                            doc.text(`Téléphone: ${formData.clientPhone}`, 20, 68);
-                            doc.text(`Email: ${formData.clientEmail || 'Non renseigné'}`, 20, 76);
-                            doc.text(`Adresse: ${formData.clientAddress}`, 20, 84);
+                            doc.text('Nom', 12, 60);
+                            doc.text(formData.clientName, 40, 60);
+                            doc.text('Intermédiaire', 12, 67);
+                            doc.text(formData.insuranceCompany, 40, 67);
+                            doc.text('Date du sinistre', 12, 74);
+                            doc.text(currentDate, 40, 74);
+                            doc.text('N° du sinistre', 12, 81);
+                            doc.text(formData.insurancePolicyNumber, 40, 81);
                             
-                            // Insurance section
-                            doc.text(`Assurance: ${formData.insuranceCompany}`, 20, 92);
-                            doc.text(`Police N°: ${formData.insurancePolicyNumber}`, 20, 100);
+                            doc.text('Souscripteur', 70, 60);
+                            doc.text(formData.clientPhone, 70, 67);
+                            doc.text('Police', 70, 74);
+                            doc.text(formData.insurancePolicyNumber, 70, 81);
                             
-                            // Vehicle section
-                            doc.setFontSize(14);
+                            // VÉHICULE section with background
+                            doc.setFillColor(173, 216, 230);
+                            doc.rect(105, 45, 95, 8, 'F');
+                            doc.setFontSize(12);
                             doc.setFont(undefined, 'bold');
-                            doc.text('VÉHICULE', 110, 50);
-                            doc.setFontSize(10);
-                            doc.setFont(undefined, 'normal');
-                            doc.text(`Véhicule: ${formData.make} ${formData.model}`, 110, 60);
-                            doc.text(`Année: ${formData.year}`, 110, 68);
-                            doc.text(`Plaque: ${formData.licensePlate}`, 110, 76);
-                            doc.text(`Couleur: ${formData.color || 'Non renseignée'}`, 110, 84);
-                            if (formData.vin) doc.text(`VIN: ${formData.vin}`, 110, 92);
+                            doc.text('VÉHICULE', 107, 51);
                             
-                            // Location info
-                            if (location) {
-                              doc.text(`Localisation: ${location.address}`, 110, 100);
-                            }
+                            doc.setFontSize(9);
+                            doc.setFont(undefined, 'normal');
+                            doc.text('Véhicule', 107, 60);
+                            doc.text(`${formData.make}`, 130, 60);
+                            doc.text('Matricule', 107, 67);
+                            doc.text(formData.licensePlate, 130, 67);
+                            doc.text('N° de châssis', 107, 74);
+                            doc.text(formData.vin || 'N/A', 130, 74);
+                            
+                            doc.text('Puissance fiscale', 155, 60);
+                            doc.text('6', 175, 60);
+                            doc.text('Date MEC', 155, 67);
+                            doc.text(`${formData.year}`, 175, 67);
+                            doc.text('Motorisation', 155, 74);
+                            doc.text('Diesel', 175, 74);
                             
                             // FOURNITURE section
-                            let yPos = 120;
-                            doc.setFontSize(14);
+                            let yPosition = 95;
+                            doc.setFillColor(173, 216, 230);
+                            doc.rect(10, yPosition, 190, 8, 'F');
+                            doc.setFontSize(12);
                             doc.setFont(undefined, 'bold');
-                            doc.text('FOURNITURE', 20, yPos);
+                            doc.text('FOURNITURE', 12, yPosition + 6);
                             
-                            // Table headers
-                            yPos += 10;
-                            doc.setFontSize(9);
+                            // Table headers for FOURNITURE
+                            yPosition += 15;
+                            doc.setFontSize(8);
                             doc.setFont(undefined, 'bold');
-                            doc.text('Élément', 20, yPos);
-                            doc.text('Position', 60, yPos);
-                            doc.text('Qté', 90, yPos);
-                            doc.text('Prix HT', 110, yPos);
-                            doc.text('TVA', 140, yPos);
-                            doc.text('Prix TTC', 160, yPos);
+                            doc.text('Élément', 12, yPosition);
+                            doc.text('Position', 50, yPosition);
+                            doc.text('Type Pièce', 75, yPosition);
+                            doc.text('Prix HT', 95, yPosition);
+                            doc.text('Quantité', 115, yPosition);
+                            doc.text('% Remise', 135, yPosition);
+                            doc.text('Montant Remise', 155, yPosition);
+                            doc.text('Prix Total HT', 175, yPosition);
+                            doc.text('TVA', 190, yPosition);
+                            doc.text('Prix TTC', 200, yPosition);
                             
                             // Line under headers
-                            doc.line(20, yPos + 2, 180, yPos + 2);
+                            doc.line(10, yPosition + 2, 200, yPosition + 2);
                             
                             // Fourniture items
-                            yPos += 8;
+                            yPosition += 8;
                             doc.setFont(undefined, 'normal');
-                            let totalFournitureHT = 0;
+                            let totalFournitureHTAmount = 0;
+                            let totalFournitureTTCAmount = 0;
+                            let fournitureItemCount = 0;
                             
                             if (damageAnalysis?.damages) {
                               damageAnalysis.damages.forEach((damage: any) => {
                                 if (damage.type.includes('phare') || damage.type.includes('Phare') || 
-                                    damage.type.includes('pare-chocs') || damage.type.includes('capot')) {
+                                    damage.type.includes('pare-chocs') || damage.type.includes('capot') ||
+                                    damage.type.includes('portière') || damage.type.includes('Portière')) {
                                   const prixHT = Math.round(damage.cost * 0.7); // 70% pour les pièces
                                   const tva = Math.round(prixHT * 0.2);
                                   const prixTTC = prixHT + tva;
-                                  totalFournitureHT += prixHT;
+                                  totalFournitureHTAmount += prixHT;
+                                  totalFournitureTTCAmount += prixTTC;
+                                  fournitureItemCount++;
                                   
-                                  doc.text(damage.type, 20, yPos);
-                                  doc.text(damage.location, 60, yPos);
-                                  doc.text('1', 90, yPos);
-                                  doc.text(`${prixHT} DH`, 110, yPos);
-                                  doc.text(`${tva} DH`, 140, yPos);
-                                  doc.text(`${prixTTC} DH`, 160, yPos);
-                                  yPos += 6;
+                                  doc.text(damage.type, 12, yPosition);
+                                  doc.text(damage.location, 50, yPosition);
+                                  doc.text('REC', 75, yPosition);
+                                  doc.text(`${prixHT},00`, 95, yPosition);
+                                  doc.text('1', 115, yPosition);
+                                  doc.text('-', 135, yPosition);
+                                  doc.text('-', 155, yPosition);
+                                  doc.text(`${prixHT},00`, 175, yPosition);
+                                  doc.text('-', 190, yPosition);
+                                  doc.text(`${prixTTC},00`, 200, yPosition);
+                                  yPosition += 6;
                                 }
                               });
                             }
                             
                             // Total Fourniture
-                            doc.line(20, yPos, 180, yPos);
-                            yPos += 6;
+                            doc.line(10, yPosition, 200, yPosition);
+                            yPosition += 6;
                             doc.setFont(undefined, 'bold');
-                            doc.text('TOTAL Fourniture', 20, yPos);
-                            const tvaTotalFourniture = Math.round(totalFournitureHT * 0.2);
-                            doc.text(`${totalFournitureHT} DH`, 110, yPos);
-                            doc.text(`${tvaTotalFourniture} DH`, 140, yPos);
-                            doc.text(`${totalFournitureHT + tvaTotalFourniture} DH`, 160, yPos);
+                            doc.text('TOTAL Fournitures', 12, yPosition);
+                            doc.text(`${fournitureItemCount}`, 115, yPosition);
+                            doc.text(`${totalFournitureHTAmount},00`, 175, yPosition);
+                            doc.text(`${totalFournitureTTCAmount},00`, 200, yPosition);
                             
                             // MAIN D'OEUVRE section
-                            yPos += 15;
-                            doc.setFontSize(14);
-                            doc.text('MAIN D\'OEUVRE', 20, yPos);
+                            yPosition += 15;
+                            doc.setFillColor(173, 216, 230);
+                            doc.rect(10, yPosition, 190, 8, 'F');
+                            doc.setFontSize(12);
+                            doc.text('MAIN D\'OEUVRE', 12, yPosition + 6);
                             
-                            // Table headers
-                            yPos += 10;
-                            doc.setFontSize(9);
-                            doc.text('Main d\'oeuvre', 20, yPos);
-                            doc.text('Position', 60, yPos);
-                            doc.text('Type MO', 90, yPos);
-                            doc.text('#Heures', 110, yPos);
-                            doc.text('Taux horaire', 130, yPos);
-                            doc.text('Prix Total HT', 150, yPos);
-                            doc.text('TVA', 170, yPos);
-                            doc.text('Prix Total TTC', 180, yPos);
+                            // Table headers for MAIN D'OEUVRE
+                            yPosition += 15;
+                            doc.setFontSize(8);
+                            doc.text('Main d\'oeuvre', 12, yPosition);
+                            doc.text('Position', 50, yPosition);
+                            doc.text('Type MO', 75, yPosition);
+                            doc.text('#Heures', 95, yPosition);
+                            doc.text('Taux horaire', 115, yPosition);
+                            doc.text('Prix Total HT', 140, yPosition);
+                            doc.text('TVA', 165, yPosition);
+                            doc.text('Prix Total TTC', 180, yPosition);
                             
-                            doc.line(20, yPos + 2, 200, yPos + 2);
+                            doc.line(10, yPosition + 2, 200, yPosition + 2);
                             
                             // Main d'oeuvre items
-                            yPos += 8;
+                            yPosition += 8;
                             doc.setFont(undefined, 'normal');
-                            let totalMainOeuvreHT = 0;
+                            let totalMainOeuvreHTAmount = 0;
+                            let totalMainOeuvreTTCAmount = 0;
+                            let heuresTotalAmount = 0;
                             
                             if (damageAnalysis?.damages) {
                               damageAnalysis.damages.forEach((damage: any) => {
                                 const prixMO = Math.round(damage.cost * 0.3); // 30% pour la main d'œuvre
                                 const heures = Math.ceil(prixMO / 70); // 70 DH par heure
                                 const tva = Math.round(prixMO * 0.2);
-                                totalMainOeuvreHT += prixMO;
+                                const prixTTC = prixMO + tva;
+                                totalMainOeuvreHTAmount += prixMO;
+                                totalMainOeuvreTTCAmount += prixTTC;
+                                heuresTotalAmount += heures;
                                 
-                                doc.text(damage.type, 20, yPos);
-                                doc.text(damage.location, 60, yPos);
-                                doc.text('Réparation', 90, yPos);
-                                doc.text(`${heures}h`, 110, yPos);
-                                doc.text('70 DH', 130, yPos);
-                                doc.text(`${prixMO} DH`, 150, yPos);
-                                doc.text(`${tva} DH`, 170, yPos);
-                                doc.text(`${prixMO + tva} DH`, 180, yPos);
-                                yPos += 6;
+                                doc.text(damage.type, 12, yPosition);
+                                doc.text(damage.location, 50, yPosition);
+                                doc.text('Changement', 75, yPosition);
+                                doc.text(`${heures},00`, 95, yPosition);
+                                doc.text('70,00', 115, yPosition);
+                                doc.text(`${prixMO},00`, 140, yPosition);
+                                doc.text(`${tva},00`, 165, yPosition);
+                                doc.text(`${prixTTC},00`, 180, yPosition);
+                                yPosition += 6;
                               });
                             }
                             
                             // Total Main d'oeuvre
-                            doc.line(20, yPos, 200, yPos);
-                            yPos += 6;
+                            doc.line(10, yPosition, 200, yPosition);
+                            yPosition += 6;
                             doc.setFont(undefined, 'bold');
-                            doc.text('TOTAL Main d\'oeuvre', 20, yPos);
-                            const tvaTotalMO = Math.round(totalMainOeuvreHT * 0.2);
-                            doc.text(`${totalMainOeuvreHT} DH`, 150, yPos);
-                            doc.text(`${tvaTotalMO} DH`, 170, yPos);
-                            doc.text(`${totalMainOeuvreHT + tvaTotalMO} DH`, 180, yPos);
+                            doc.text('TOTAL Main d\'oeuvre', 12, yPosition);
+                            doc.text(`${heuresTotalAmount},00`, 95, yPosition);
+                            doc.text(`${totalMainOeuvreHTAmount},00`, 140, yPosition);
+                            doc.text(`${Math.round(totalMainOeuvreHTAmount * 0.2)},00`, 165, yPosition);
+                            doc.text(`${totalMainOeuvreTTCAmount},00`, 180, yPosition);
                             
-                            // TOTAL GÉNÉRAL
-                            yPos += 15;
+                            // TOTAL GÉNÉRAL with table format
+                            yPosition += 20;
+                            
+                            // Create table structure
+                            doc.setFillColor(240, 240, 240);
+                            doc.rect(50, yPosition, 150, 25, 'F');
+                            doc.rect(50, yPosition, 150, 25, 'S');
+                            
+                            // Table headers
+                            yPosition += 8;
+                            doc.setFontSize(10);
+                            doc.setFont(undefined, 'bold');
+                            doc.text('Total HT', 110, yPosition);
+                            doc.text('TVA', 140, yPosition);
+                            doc.text('TTC', 170, yPosition);
+                            
+                            // TOTAL Fourniture row
+                            yPosition += 6;
+                            doc.setFont(undefined, 'normal');
+                            doc.text('TOTAL Fourniture', 55, yPosition);
+                            doc.text(`${totalFournitureHTAmount},00`, 110, yPosition);
+                            doc.text(`${Math.round(totalFournitureHTAmount * 0.2)},00`, 140, yPosition);
+                            doc.text(`${totalFournitureTTCAmount},00`, 170, yPosition);
+                            
+                            // TOTAL Main d'oeuvre row
+                            yPosition += 6;
+                            doc.text('TOTAL Main d\'oeuvre', 55, yPosition);
+                            doc.text(`${totalMainOeuvreHTAmount},00`, 110, yPosition);
+                            doc.text(`${Math.round(totalMainOeuvreHTAmount * 0.2)},00`, 140, yPosition);
+                            doc.text(`${totalMainOeuvreTTCAmount},00`, 170, yPosition);
+                            
+                            // TOTAL Général row (highlighted)
+                            yPosition += 6;
+                            doc.setFont(undefined, 'bold');
                             doc.setFontSize(12);
-                            const totalGeneralHT = totalFournitureHT + totalMainOeuvreHT;
-                            const totalGeneralTVA = tvaTotalFourniture + tvaTotalMO;
-                            const totalGeneralTTC = totalGeneralHT + totalGeneralTVA;
+                            const totalGeneralHTValue = totalFournitureHTAmount + totalMainOeuvreHTAmount;
+                            const totalGeneralTVAValue = Math.round(totalGeneralHTValue * 0.2);
+                            const totalGeneralTTCValue = totalFournitureTTCAmount + totalMainOeuvreTTCAmount;
                             
-                            doc.text('TOTAL Fourniture', 20, yPos);
-                            doc.text(`${totalFournitureHT + tvaTotalFourniture} DH`, 150, yPos);
-                            yPos += 8;
-                            doc.text('TOTAL Main d\'oeuvre', 20, yPos);
-                            doc.text(`${totalMainOeuvreHT + tvaTotalMO} DH`, 150, yPos);
-                            yPos += 8;
-                            doc.setFont(undefined, 'bold');
-                            doc.text('TOTAL Général', 20, yPos);
-                            doc.text(`${totalGeneralTTC} DH`, 150, yPos);
+                            doc.text('TOTAL Général', 55, yPosition);
+                            doc.text(`${totalGeneralHTValue},00`, 110, yPosition);
+                            doc.text(`${totalGeneralTVAValue},00`, 140, yPosition);
+                            doc.setTextColor(0, 100, 200); // Blue color for final total
+                            doc.text(`${totalGeneralTTCValue},00`, 170, yPosition);
+                            doc.setTextColor(0, 0, 0); // Reset color
                             
                             // Conversion en lettres
-                            yPos += 15;
+                            yPosition += 15;
                             doc.setFontSize(10);
                             doc.setFont(undefined, 'italic');
-                            doc.text(`Arrêté le présent devis à la somme de : ${totalGeneralTTC} dirhams`, 20, yPos);
+                            doc.text(`Arrêté le présent devis à la somme de : ${totalGeneralTTCValue} dirhams`, 20, yPosition);
                             
-                            // Observations section
-                            yPos += 15;
+                            // OBSERVATIONS section
+                            yPosition += 15;
+                            doc.setFillColor(173, 216, 230);
+                            doc.rect(10, yPosition, 190, 8, 'F');
                             doc.setFontSize(12);
                             doc.setFont(undefined, 'bold');
-                            doc.text('OBSERVATIONS', 20, yPos);
-                            yPos += 8;
+                            doc.text('OBSERVATIONS', 12, yPosition + 6);
+                            
+                            yPosition += 15;
                             doc.setFontSize(10);
                             doc.setFont(undefined, 'normal');
-                            doc.text(formData.damageDescription || 'Aucune observation particulière', 20, yPos, { maxWidth: 170 });
+                            doc.text(formData.damageDescription || 'Aucune observation particulière', 12, yPosition, { maxWidth: 180 });
                             
                             // Save PDF
-                            doc.save(`devis-${formData.licensePlate}-${currentDate.replace(/\//g, '')}.pdf`);
+                            doc.save(`devis-${devisNumber}-${currentDate.replace(/\//g, '')}.pdf`);
                             
                             toast({
                               title: "PDF téléchargé",
@@ -1045,6 +1077,11 @@ const EstimationForm = () => {
                         Télécharger PDF
                       </Button>
                     </div>
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-500 py-8">
+                    <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Veuillez d'abord compléter l'analyse IA pour générer le devis</p>
                   </div>
                 )}
               </CardContent>
