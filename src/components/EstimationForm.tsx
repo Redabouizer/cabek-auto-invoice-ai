@@ -296,7 +296,7 @@ const EstimationForm = () => {
                     <FormItem>
                       <FormLabel>Nom complet *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Jean Dupont" {...field} />
+                        <Input placeholder="Ahmed Benali" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -309,7 +309,7 @@ const EstimationForm = () => {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="jean.dupont@email.com" {...field} />
+                        <Input type="email" placeholder="ahmed.benali@email.ma" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -322,7 +322,7 @@ const EstimationForm = () => {
                     <FormItem>
                       <FormLabel>Téléphone *</FormLabel>
                       <FormControl>
-                        <Input placeholder="+33 6 12 34 56 78" {...field} />
+                        <Input placeholder="+212 6 12 34 56 78" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -335,7 +335,7 @@ const EstimationForm = () => {
                     <FormItem className="md:col-span-2">
                       <FormLabel>Adresse *</FormLabel>
                       <FormControl>
-                        <Input placeholder="123 Rue de la Paix, 75001 Paris" {...field} />
+                        <Input placeholder="123 Avenue Hassan II, Casablanca" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -362,7 +362,7 @@ const EstimationForm = () => {
                     <FormItem>
                       <FormLabel>Compagnie d'assurance *</FormLabel>
                       <FormControl>
-                        <Input placeholder="AXA Assurance" {...field} />
+                        <Input placeholder="Wafa Assurance" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -375,7 +375,7 @@ const EstimationForm = () => {
                     <FormItem>
                       <FormLabel>Numéro de police *</FormLabel>
                       <FormControl>
-                        <Input placeholder="POL123456789" {...field} />
+                        <Input placeholder="WA123456789" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -416,7 +416,7 @@ const EstimationForm = () => {
                       <FormLabel>Plaque d'immatriculation *</FormLabel>
                       <FormControl>
                         <Input 
-                          placeholder="AB-123-CD" 
+                          placeholder="12345-ب-123" 
                           {...field} 
                           onChange={(e) => {
                             field.onChange(e);
@@ -440,7 +440,7 @@ const EstimationForm = () => {
                     <FormItem>
                       <FormLabel>Marque *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Peugeot" {...field} />
+                        <Input placeholder="Dacia" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -453,7 +453,7 @@ const EstimationForm = () => {
                     <FormItem>
                       <FormLabel>Modèle *</FormLabel>
                       <FormControl>
-                        <Input placeholder="308" {...field} />
+                        <Input placeholder="Logan" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -484,7 +484,7 @@ const EstimationForm = () => {
                     <FormItem>
                       <FormLabel>Couleur</FormLabel>
                       <FormControl>
-                        <Input placeholder="Blanc" {...field} />
+                        <Input placeholder="Gris" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -499,7 +499,7 @@ const EstimationForm = () => {
                       <FormControl>
                         <Input 
                           type="number" 
-                          placeholder="50000" 
+                          placeholder="80000" 
                           {...field}
                           onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                         />
@@ -515,7 +515,7 @@ const EstimationForm = () => {
                     <FormItem className="md:col-span-2">
                       <FormLabel>Numéro VIN</FormLabel>
                       <FormControl>
-                        <Input placeholder="1HGBH41JXMN109186" {...field} />
+                        <Input placeholder="VF1LB1B0H46123456" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -581,13 +581,13 @@ const EstimationForm = () => {
                           setAnalysisComplete(true);
                           setDamageAnalysis({
                             confidence: '92%',
-                            damages: [
-                              { type: 'Rayure profonde', location: 'Portière avant droite', severity: 'Modéré', cost: 450 },
-                              { type: 'Bosse', location: 'Aile arrière gauche', severity: 'Léger', cost: 320 },
-                              { type: 'Phare endommagé', location: 'Avant du véhicule', severity: 'Important', cost: 280 },
-                              { type: 'Éraflure', location: 'Pare-chocs avant', severity: 'Léger', cost: 180 }
-                            ],
-                            totalCost: 1230
+                             damages: [
+                               { type: 'Rayure profonde', location: 'Portière avant droite', severity: 'Modéré', cost: 4500 },
+                               { type: 'Bosse', location: 'Aile arrière gauche', severity: 'Léger', cost: 3200 },
+                               { type: 'Phare endommagé', location: 'Avant du véhicule', severity: 'Important', cost: 2800 },
+                               { type: 'Éraflure', location: 'Pare-chocs avant', severity: 'Léger', cost: 1800 }
+                             ],
+                             totalCost: 12300
                           });
                           toast({
                             title: "Analyse terminée",
@@ -644,7 +644,7 @@ const EstimationForm = () => {
                               </span>
                             </div>
                             <div className="text-right">
-                              <p className="font-semibold">{damage.cost}€</p>
+                              <p className="font-semibold">{damage.cost} DH</p>
                             </div>
                           </div>
                         ))}
@@ -652,7 +652,7 @@ const EstimationForm = () => {
                       <div className="mt-4 pt-4 border-t border-gray-200">
                         <div className="flex justify-between items-center">
                           <span className="font-semibold">Coût Total Estimé:</span>
-                          <span className="text-xl font-bold text-blue-600">{damageAnalysis.totalCost}€</span>
+                          <span className="text-xl font-bold text-blue-600">{damageAnalysis.totalCost} DH</span>
                         </div>
                       </div>
                     </div>
@@ -770,22 +770,22 @@ const EstimationForm = () => {
                         {damageAnalysis?.damages.map((damage: any, index: number) => (
                           <div key={index} className="flex justify-between text-sm py-1">
                             <span>{damage.type}</span>
-                            <span>{damage.cost}€</span>
+                            <span>{damage.cost} DH</span>
                           </div>
                         ))}
                         
                         <div className="border-t border-blue-300 mt-2 pt-2">
                           <div className="flex justify-between font-bold">
                             <span>Sous-total HT:</span>
-                            <span>{damageAnalysis?.totalCost || 1230}€</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>TVA (20%):</span>
-                            <span>{Math.round((damageAnalysis?.totalCost || 1230) * 0.2)}€</span>
-                          </div>
-                          <div className="flex justify-between font-bold text-lg border-t border-blue-300 mt-1 pt-1">
-                            <span>Total TTC:</span>
-                            <span>{Math.round((damageAnalysis?.totalCost || 1230) * 1.2)}€</span>
+                             <span>{damageAnalysis?.totalCost || 12300} DH</span>
+                           </div>
+                           <div className="flex justify-between text-sm">
+                             <span>TVA (20%):</span>
+                             <span>{Math.round((damageAnalysis?.totalCost || 12300) * 0.2)} DH</span>
+                           </div>
+                           <div className="flex justify-between font-bold text-lg border-t border-blue-300 mt-1 pt-1">
+                             <span>Total TTC:</span>
+                             <span>{Math.round((damageAnalysis?.totalCost || 12300) * 1.2)} DH</span>
                           </div>
                         </div>
                       </div>
