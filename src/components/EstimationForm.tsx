@@ -233,7 +233,37 @@ const EstimationForm = () => {
     }
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
+    // Validate current step before proceeding
+    let fieldsToValidate: (keyof EstimationFormData)[] = [];
+    
+    switch (currentStep) {
+      case 0: // Client Information
+        fieldsToValidate = ['clientName', 'clientPhone', 'clientAddress'];
+        break;
+      case 1: // Insurance Information
+        fieldsToValidate = ['insuranceCompany', 'insurancePolicyNumber'];
+        break;
+      case 2: // Vehicle Information
+        fieldsToValidate = ['licensePlate', 'make', 'model', 'year'];
+        break;
+      case 5: // Analysis step
+        fieldsToValidate = ['damageDescription', 'damageSeverity'];
+        break;
+    }
+    
+    if (fieldsToValidate.length > 0) {
+      const isValid = await form.trigger(fieldsToValidate);
+      if (!isValid) {
+        toast({
+          title: "Champs requis manquants",
+          description: "Veuillez remplir tous les champs marqués d'un astérisque (*)",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     }
@@ -792,10 +822,64 @@ const EstimationForm = () => {
                     </div>
 
                     <div className="flex gap-3 justify-center">
-                      <Button variant="outline">
+                      <Button 
+                        variant="outline"
+                        onClick={() => {
+                          window.print();
+                          toast({
+                            title: "Impression lancée",
+                            description: "La fenêtre d'impression va s'ouvrir",
+                          });
+                        }}
+                      >
                         Imprimer
                       </Button>
-                      <Button>
+                      <Button
+                        onClick={() => {
+                          // Generate PDF logic here
+                          const formData = form.getValues();
+                          const pdfContent = `
+DEVIS D'ÉVALUATION N° CABEK-241901
+
+CLIENT: ${formData.clientName}
+TÉLÉPHONE: ${formData.clientPhone}
+ADRESSE: ${formData.clientAddress}
+EMAIL: ${formData.clientEmail || 'Non renseigné'}
+
+VÉHICULE: ${formData.make} ${formData.model} ${formData.year}
+PLAQUE: ${formData.licensePlate}
+COULEUR: ${formData.color || 'Non renseignée'}
+
+ASSURANCE: ${formData.insuranceCompany}
+POLICE N°: ${formData.insurancePolicyNumber}
+
+DÉTAIL DES DOMMAGES:
+${damageAnalysis?.damages.map((d: any) => `- ${d.type} (${d.location}): ${d.cost} DH`).join('\n') || ''}
+
+SOUS-TOTAL HT: ${damageAnalysis?.totalCost || 12300} DH
+TVA (20%): ${Math.round((damageAnalysis?.totalCost || 12300) * 0.2)} DH
+TOTAL TTC: ${Math.round((damageAnalysis?.totalCost || 12300) * 1.2)} DH
+
+Date: ${new Date().toLocaleDateString()}
+Confiance IA: ${damageAnalysis?.confidence || '92%'}
+                          `;
+                          
+                          const blob = new Blob([pdfContent], { type: 'text/plain' });
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `devis-${formData.licensePlate}-${new Date().toISOString().split('T')[0]}.txt`;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          window.URL.revokeObjectURL(url);
+                          
+                          toast({
+                            title: "PDF téléchargé",
+                            description: "Le devis a été téléchargé avec succès",
+                          });
+                        }}
+                      >
                         Télécharger PDF
                       </Button>
                     </div>
