@@ -14,7 +14,11 @@ import {
   MapPin, 
   Camera,
   Save,
-  Send
+  Send,
+  Brain,
+  FileText,
+  Upload,
+  Loader
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -56,6 +60,10 @@ const EstimationForm = () => {
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [location, setLocation] = useState<{lat: number, lng: number, address: string} | null>(null);
   const [vehicleData, setVehicleData] = useState<any>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisComplete, setAnalysisComplete] = useState(false);
+  const [damageAnalysis, setDamageAnalysis] = useState<any>(null);
+  const [invoiceGenerated, setInvoiceGenerated] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -86,7 +94,9 @@ const EstimationForm = () => {
     { id: 1, title: 'Assurance', icon: Shield },
     { id: 2, title: 'Véhicule', icon: Car },
     { id: 3, title: 'Localisation', icon: MapPin },
-    { id: 4, title: 'Photos & Dommages', icon: Camera }
+    { id: 4, title: 'Télécharger Photos', icon: Upload },
+    { id: 5, title: 'Analyse IA', icon: Brain },
+    { id: 6, title: 'Génération Facture', icon: FileText }
   ];
 
   // Auto-fetch vehicle data when license plate changes
@@ -530,59 +540,267 @@ const EstimationForm = () => {
             </Card>
           )}
 
-          {/* Step 4: Photos and Damage */}
+          {/* Step 4: Télécharger Photos */}
           {currentStep === 4 && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <Camera className="h-6 w-6 text-blue-600" />
-                  <span>Photos et Description des Dommages</span>
+                  <Upload className="h-6 w-6 text-blue-600" />
+                  <span>Téléchargement des Photos</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent>
                 <PhotoUploadSection onImagesUploaded={setUploadedImages} />
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="damageSeverity"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sévérité des dommages *</FormLabel>
-                        <FormControl>
-                          <select 
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            {...field}
-                          >
-                            <option value="léger">Léger</option>
-                            <option value="modéré">Modéré</option>
-                            <option value="grave">Grave</option>
-                            <option value="total">Perte totale</option>
-                          </select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <FormField
-                  control={form.control}
-                  name="damageDescription"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description détaillée des dommages *</FormLabel>
-                      <FormControl>
-                        <textarea
-                          className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                          placeholder="Décrivez en détail les dommages observés..."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Step 5: Analyse IA */}
+          {currentStep === 5 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Brain className="h-6 w-6 text-blue-600" />
+                  <span>Analyse IA</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-center py-12">
+                {!isAnalyzing && !analysisComplete && (
+                  <div className="space-y-4">
+                    <Brain className="h-16 w-16 text-blue-500 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold">Prêt pour l'analyse IA</h3>
+                    <p className="text-gray-600 max-w-md mx-auto">
+                      Notre intelligence artificielle va analyser les photos téléchargées pour détecter et évaluer automatiquement les dommages.
+                    </p>
+                    <Button 
+                      onClick={() => {
+                        setIsAnalyzing(true);
+                        // Simulate AI analysis
+                        setTimeout(() => {
+                          setIsAnalyzing(false);
+                          setAnalysisComplete(true);
+                          setDamageAnalysis({
+                            confidence: '92%',
+                            damages: [
+                              { type: 'Rayure profonde', location: 'Portière avant droite', severity: 'Modéré', cost: 450 },
+                              { type: 'Bosse', location: 'Aile arrière gauche', severity: 'Léger', cost: 320 },
+                              { type: 'Phare endommagé', location: 'Avant du véhicule', severity: 'Important', cost: 280 },
+                              { type: 'Éraflure', location: 'Pare-chocs avant', severity: 'Léger', cost: 180 }
+                            ],
+                            totalCost: 1230
+                          });
+                          toast({
+                            title: "Analyse terminée",
+                            description: "L'IA a détecté et analysé les dommages avec 92% de confiance",
+                          });
+                        }, 3000);
+                      }}
+                      disabled={uploadedImages.length === 0}
+                      className="px-8 py-3"
+                    >
+                      <Brain className="h-4 w-4 mr-2" />
+                      Analyser les Photos ({uploadedImages.length})
+                    </Button>
+                  </div>
+                )}
+
+                {isAnalyzing && (
+                  <div className="space-y-4">
+                    <Loader className="h-16 w-16 text-blue-500 mx-auto animate-spin" />
+                    <h3 className="text-xl font-semibold">Analyse IA en cours</h3>
+                    <p className="text-gray-600">
+                      Notre intelligence artificielle analyse les dommages détectés sur les photos...
+                    </p>
+                    <div className="w-full bg-gray-200 rounded-full h-2 max-w-md mx-auto">
+                      <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{width: '68%'}}></div>
+                    </div>
+                    <p className="text-sm text-gray-500">Évaluation des impacts...</p>
+                  </div>
+                )}
+
+                {analysisComplete && damageAnalysis && (
+                  <div className="text-left space-y-6">
+                    <div className="text-center">
+                      <div className="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full mb-4">
+                        <Brain className="h-5 w-5 mr-2" />
+                        Analyse Terminée - Confiance IA: {damageAnalysis.confidence}
+                      </div>
+                    </div>
+                    
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <h4 className="font-semibold mb-3">Dommages Détectés</h4>
+                      <div className="space-y-3">
+                        {damageAnalysis.damages.map((damage: any, index: number) => (
+                          <div key={index} className="flex justify-between items-center p-3 bg-white rounded border">
+                            <div>
+                              <p className="font-medium">{damage.type}</p>
+                              <p className="text-sm text-gray-600">{damage.location}</p>
+                              <span className={`inline-block px-2 py-1 text-xs rounded ${
+                                damage.severity === 'Léger' ? 'bg-green-100 text-green-800' :
+                                damage.severity === 'Modéré' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-red-100 text-red-800'
+                              }`}>
+                                {damage.severity}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold">{damage.cost}€</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold">Coût Total Estimé:</span>
+                          <span className="text-xl font-bold text-blue-600">{damageAnalysis.totalCost}€</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="damageSeverity"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Sévérité des dommages *</FormLabel>
+                            <FormControl>
+                              <select 
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                {...field}
+                              >
+                                <option value="léger">Léger</option>
+                                <option value="modéré">Modéré</option>
+                                <option value="grave">Grave</option>
+                                <option value="total">Perte totale</option>
+                              </select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <FormField
+                      control={form.control}
+                      name="damageDescription"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description détaillée des dommages *</FormLabel>
+                          <FormControl>
+                            <textarea
+                              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                              placeholder="Décrivez en détail les dommages observés..."
+                              {...field}
+                              defaultValue="Analyse IA: Rayure profonde sur portière avant droite, bosse sur aile arrière gauche, phare endommagé à l'avant, éraflure sur pare-chocs avant."
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Step 6: Génération Facture */}
+          {currentStep === 6 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FileText className="h-6 w-6 text-blue-600" />
+                  <span>Génération Facture</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-center py-12">
+                {!invoiceGenerated ? (
+                  <div className="space-y-4">
+                    <FileText className="h-16 w-16 text-blue-500 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold">Facture d'estimation des réparations</h3>
+                    <p className="text-gray-600 max-w-md mx-auto">
+                      Génération automatique de la facture basée sur l'analyse IA.
+                    </p>
+                    <Button 
+                      onClick={() => {
+                        setInvoiceGenerated(true);
+                        toast({
+                          title: "Facture générée",
+                          description: "La facture d'estimation a été générée avec succès",
+                        });
+                      }}
+                      disabled={!analysisComplete}
+                      className="px-8 py-3"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Générer la Facture
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full mb-4">
+                      <FileText className="h-5 w-5 mr-2" />
+                      Facture Générée
+                    </div>
+                    
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-left max-w-md mx-auto">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-bold text-lg">Devis d'Évaluation</h4>
+                        <span className="text-sm text-gray-600">N° CABEK-241901</span>
+                      </div>
+                      
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Photos analysées:</span>
+                          <span>{uploadedImages.length}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Date d'analyse:</span>
+                          <span>{new Date().toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Confiance IA:</span>
+                          <span>{damageAnalysis?.confidence || '92%'}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="border-t border-blue-300 mt-4 pt-4">
+                        <h5 className="font-semibold mb-2">Détail des Dommages Détectés</h5>
+                        {damageAnalysis?.damages.map((damage: any, index: number) => (
+                          <div key={index} className="flex justify-between text-sm py-1">
+                            <span>{damage.type}</span>
+                            <span>{damage.cost}€</span>
+                          </div>
+                        ))}
+                        
+                        <div className="border-t border-blue-300 mt-2 pt-2">
+                          <div className="flex justify-between font-bold">
+                            <span>Sous-total HT:</span>
+                            <span>{damageAnalysis?.totalCost || 1230}€</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>TVA (20%):</span>
+                            <span>{Math.round((damageAnalysis?.totalCost || 1230) * 0.2)}€</span>
+                          </div>
+                          <div className="flex justify-between font-bold text-lg border-t border-blue-300 mt-1 pt-1">
+                            <span>Total TTC:</span>
+                            <span>{Math.round((damageAnalysis?.totalCost || 1230) * 1.2)}€</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 justify-center">
+                      <Button variant="outline">
+                        Imprimer
+                      </Button>
+                      <Button>
+                        Télécharger PDF
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
