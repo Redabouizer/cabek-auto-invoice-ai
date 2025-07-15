@@ -836,47 +836,209 @@ const EstimationForm = () => {
                       </Button>
                       <Button
                         onClick={() => {
-                          // Generate PDF logic here
-                          const formData = form.getValues();
-                          const pdfContent = `
-DEVIS D'ÉVALUATION N° CABEK-241901
-
-CLIENT: ${formData.clientName}
-TÉLÉPHONE: ${formData.clientPhone}
-ADRESSE: ${formData.clientAddress}
-EMAIL: ${formData.clientEmail || 'Non renseigné'}
-
-VÉHICULE: ${formData.make} ${formData.model} ${formData.year}
-PLAQUE: ${formData.licensePlate}
-COULEUR: ${formData.color || 'Non renseignée'}
-
-ASSURANCE: ${formData.insuranceCompany}
-POLICE N°: ${formData.insurancePolicyNumber}
-
-DÉTAIL DES DOMMAGES:
-${damageAnalysis?.damages.map((d: any) => `- ${d.type} (${d.location}): ${d.cost} DH`).join('\n') || ''}
-
-SOUS-TOTAL HT: ${damageAnalysis?.totalCost || 12300} DH
-TVA (20%): ${Math.round((damageAnalysis?.totalCost || 12300) * 0.2)} DH
-TOTAL TTC: ${Math.round((damageAnalysis?.totalCost || 12300) * 1.2)} DH
-
-Date: ${new Date().toLocaleDateString()}
-Confiance IA: ${damageAnalysis?.confidence || '92%'}
-                          `;
-                          
-                          const blob = new Blob([pdfContent], { type: 'text/plain' });
-                          const url = window.URL.createObjectURL(blob);
-                          const a = document.createElement('a');
-                          a.href = url;
-                          a.download = `devis-${formData.licensePlate}-${new Date().toISOString().split('T')[0]}.txt`;
-                          document.body.appendChild(a);
-                          a.click();
-                          document.body.removeChild(a);
-                          window.URL.revokeObjectURL(url);
-                          
-                          toast({
-                            title: "PDF téléchargé",
-                            description: "Le devis a été téléchargé avec succès",
+                          // Generate professional PDF
+                          import('jspdf').then(({ jsPDF }) => {
+                            const doc = new jsPDF();
+                            const formData = form.getValues();
+                            const currentDate = new Date().toLocaleDateString('fr-FR');
+                            
+                            // Header
+                            doc.setFontSize(20);
+                            doc.setFont(undefined, 'bold');
+                            doc.text('DEVIS D\'ESTIMATION', 105, 20, { align: 'center' });
+                            
+                            // Devis number and date
+                            doc.setFontSize(12);
+                            doc.setFont(undefined, 'normal');
+                            doc.text(`N° CABEK-${Date.now().toString().slice(-6)}`, 20, 35);
+                            doc.text(`Date: ${currentDate}`, 150, 35);
+                            
+                            // Client section
+                            doc.setFontSize(14);
+                            doc.setFont(undefined, 'bold');
+                            doc.text('ASSURÉ', 20, 50);
+                            doc.setFontSize(10);
+                            doc.setFont(undefined, 'normal');
+                            doc.text(`Nom: ${formData.clientName}`, 20, 60);
+                            doc.text(`Téléphone: ${formData.clientPhone}`, 20, 68);
+                            doc.text(`Email: ${formData.clientEmail || 'Non renseigné'}`, 20, 76);
+                            doc.text(`Adresse: ${formData.clientAddress}`, 20, 84);
+                            
+                            // Insurance section
+                            doc.text(`Assurance: ${formData.insuranceCompany}`, 20, 92);
+                            doc.text(`Police N°: ${formData.insurancePolicyNumber}`, 20, 100);
+                            
+                            // Vehicle section
+                            doc.setFontSize(14);
+                            doc.setFont(undefined, 'bold');
+                            doc.text('VÉHICULE', 110, 50);
+                            doc.setFontSize(10);
+                            doc.setFont(undefined, 'normal');
+                            doc.text(`Véhicule: ${formData.make} ${formData.model}`, 110, 60);
+                            doc.text(`Année: ${formData.year}`, 110, 68);
+                            doc.text(`Plaque: ${formData.licensePlate}`, 110, 76);
+                            doc.text(`Couleur: ${formData.color || 'Non renseignée'}`, 110, 84);
+                            if (formData.vin) doc.text(`VIN: ${formData.vin}`, 110, 92);
+                            
+                            // Location info
+                            if (location) {
+                              doc.text(`Localisation: ${location.address}`, 110, 100);
+                            }
+                            
+                            // FOURNITURE section
+                            let yPos = 120;
+                            doc.setFontSize(14);
+                            doc.setFont(undefined, 'bold');
+                            doc.text('FOURNITURE', 20, yPos);
+                            
+                            // Table headers
+                            yPos += 10;
+                            doc.setFontSize(9);
+                            doc.setFont(undefined, 'bold');
+                            doc.text('Élément', 20, yPos);
+                            doc.text('Position', 60, yPos);
+                            doc.text('Qté', 90, yPos);
+                            doc.text('Prix HT', 110, yPos);
+                            doc.text('TVA', 140, yPos);
+                            doc.text('Prix TTC', 160, yPos);
+                            
+                            // Line under headers
+                            doc.line(20, yPos + 2, 180, yPos + 2);
+                            
+                            // Fourniture items
+                            yPos += 8;
+                            doc.setFont(undefined, 'normal');
+                            let totalFournitureHT = 0;
+                            
+                            if (damageAnalysis?.damages) {
+                              damageAnalysis.damages.forEach((damage: any) => {
+                                if (damage.type.includes('phare') || damage.type.includes('Phare') || 
+                                    damage.type.includes('pare-chocs') || damage.type.includes('capot')) {
+                                  const prixHT = Math.round(damage.cost * 0.7); // 70% pour les pièces
+                                  const tva = Math.round(prixHT * 0.2);
+                                  const prixTTC = prixHT + tva;
+                                  totalFournitureHT += prixHT;
+                                  
+                                  doc.text(damage.type, 20, yPos);
+                                  doc.text(damage.location, 60, yPos);
+                                  doc.text('1', 90, yPos);
+                                  doc.text(`${prixHT} DH`, 110, yPos);
+                                  doc.text(`${tva} DH`, 140, yPos);
+                                  doc.text(`${prixTTC} DH`, 160, yPos);
+                                  yPos += 6;
+                                }
+                              });
+                            }
+                            
+                            // Total Fourniture
+                            doc.line(20, yPos, 180, yPos);
+                            yPos += 6;
+                            doc.setFont(undefined, 'bold');
+                            doc.text('TOTAL Fourniture', 20, yPos);
+                            const tvaTotalFourniture = Math.round(totalFournitureHT * 0.2);
+                            doc.text(`${totalFournitureHT} DH`, 110, yPos);
+                            doc.text(`${tvaTotalFourniture} DH`, 140, yPos);
+                            doc.text(`${totalFournitureHT + tvaTotalFourniture} DH`, 160, yPos);
+                            
+                            // MAIN D'OEUVRE section
+                            yPos += 15;
+                            doc.setFontSize(14);
+                            doc.text('MAIN D\'OEUVRE', 20, yPos);
+                            
+                            // Table headers
+                            yPos += 10;
+                            doc.setFontSize(9);
+                            doc.text('Main d\'oeuvre', 20, yPos);
+                            doc.text('Position', 60, yPos);
+                            doc.text('Type MO', 90, yPos);
+                            doc.text('#Heures', 110, yPos);
+                            doc.text('Taux horaire', 130, yPos);
+                            doc.text('Prix Total HT', 150, yPos);
+                            doc.text('TVA', 170, yPos);
+                            doc.text('Prix Total TTC', 180, yPos);
+                            
+                            doc.line(20, yPos + 2, 200, yPos + 2);
+                            
+                            // Main d'oeuvre items
+                            yPos += 8;
+                            doc.setFont(undefined, 'normal');
+                            let totalMainOeuvreHT = 0;
+                            
+                            if (damageAnalysis?.damages) {
+                              damageAnalysis.damages.forEach((damage: any) => {
+                                const prixMO = Math.round(damage.cost * 0.3); // 30% pour la main d'œuvre
+                                const heures = Math.ceil(prixMO / 70); // 70 DH par heure
+                                const tva = Math.round(prixMO * 0.2);
+                                totalMainOeuvreHT += prixMO;
+                                
+                                doc.text(damage.type, 20, yPos);
+                                doc.text(damage.location, 60, yPos);
+                                doc.text('Réparation', 90, yPos);
+                                doc.text(`${heures}h`, 110, yPos);
+                                doc.text('70 DH', 130, yPos);
+                                doc.text(`${prixMO} DH`, 150, yPos);
+                                doc.text(`${tva} DH`, 170, yPos);
+                                doc.text(`${prixMO + tva} DH`, 180, yPos);
+                                yPos += 6;
+                              });
+                            }
+                            
+                            // Total Main d'oeuvre
+                            doc.line(20, yPos, 200, yPos);
+                            yPos += 6;
+                            doc.setFont(undefined, 'bold');
+                            doc.text('TOTAL Main d\'oeuvre', 20, yPos);
+                            const tvaTotalMO = Math.round(totalMainOeuvreHT * 0.2);
+                            doc.text(`${totalMainOeuvreHT} DH`, 150, yPos);
+                            doc.text(`${tvaTotalMO} DH`, 170, yPos);
+                            doc.text(`${totalMainOeuvreHT + tvaTotalMO} DH`, 180, yPos);
+                            
+                            // TOTAL GÉNÉRAL
+                            yPos += 15;
+                            doc.setFontSize(12);
+                            const totalGeneralHT = totalFournitureHT + totalMainOeuvreHT;
+                            const totalGeneralTVA = tvaTotalFourniture + tvaTotalMO;
+                            const totalGeneralTTC = totalGeneralHT + totalGeneralTVA;
+                            
+                            doc.text('TOTAL Fourniture', 20, yPos);
+                            doc.text(`${totalFournitureHT + tvaTotalFourniture} DH`, 150, yPos);
+                            yPos += 8;
+                            doc.text('TOTAL Main d\'oeuvre', 20, yPos);
+                            doc.text(`${totalMainOeuvreHT + tvaTotalMO} DH`, 150, yPos);
+                            yPos += 8;
+                            doc.setFont(undefined, 'bold');
+                            doc.text('TOTAL Général', 20, yPos);
+                            doc.text(`${totalGeneralTTC} DH`, 150, yPos);
+                            
+                            // Conversion en lettres
+                            yPos += 15;
+                            doc.setFontSize(10);
+                            doc.setFont(undefined, 'italic');
+                            doc.text(`Arrêté le présent devis à la somme de : ${totalGeneralTTC} dirhams`, 20, yPos);
+                            
+                            // Observations section
+                            yPos += 15;
+                            doc.setFontSize(12);
+                            doc.setFont(undefined, 'bold');
+                            doc.text('OBSERVATIONS', 20, yPos);
+                            yPos += 8;
+                            doc.setFontSize(10);
+                            doc.setFont(undefined, 'normal');
+                            doc.text(formData.damageDescription || 'Aucune observation particulière', 20, yPos, { maxWidth: 170 });
+                            
+                            // Save PDF
+                            doc.save(`devis-${formData.licensePlate}-${currentDate.replace(/\//g, '')}.pdf`);
+                            
+                            toast({
+                              title: "PDF téléchargé",
+                              description: "Le devis professionnel a été généré et téléchargé",
+                            });
+                          }).catch(() => {
+                            toast({
+                              title: "Erreur",
+                              description: "Impossible de générer le PDF",
+                              variant: "destructive",
+                            });
                           });
                         }}
                       >
